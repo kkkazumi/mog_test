@@ -20,13 +20,15 @@ int main(int arc, char **argv)
   bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_128); 
   bcm2835_spi_chipSelect(BCM2835_SPI_CS1);                 
   bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, LOW); 
-     
-  bcm2835_spi_transfernb(out_ch0, ch0_data, 3);
-  printf("CH0:    %02X %02X %02X\n", ch0_data[0], ch0_data[1], ch0_data[2]);
-  bcm2835_spi_transfernb(out_ch1, ch1_data, 3);
-  printf("CH1:    %02X %02X %02X\n", ch1_data[0], ch1_data[1], ch1_data[2]);
-  bcm2835_spi_transfernb(out_ch2, ch2_data, 3);
-  printf("CH2:    %02X %02X %02X\n", ch2_data[0], ch2_data[1], ch2_data[2]);
+
+  while(1){
+      bcm2835_spi_transfernb(out_ch0, ch0_data, 3);
+      printf("CH0:    %02X %02X %02X\n", ch0_data[0], ch0_data[1], ch0_data[2]);
+      bcm2835_spi_transfernb(out_ch1, ch1_data, 3);
+      //printf("CH1:    %02X %02X %02X\n", ch1_data[0], ch1_data[1], ch1_data[2]);
+      bcm2835_spi_transfernb(out_ch2, ch2_data, 3);
+      //printf("CH2:    %02X %02X %02X\n", ch2_data[0], ch2_data[1], ch2_data[2]);
+  }
      
   bcm2835_spi_end();
   bcm2835_close();
