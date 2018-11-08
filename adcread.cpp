@@ -6,6 +6,19 @@ void get_dist(char* out_ch0, char* ch0_data){
 	printf("CH0:    %02X %02X %02X\n", ch0_data[0], ch0_data[1], ch0_data[2]);
 }
 
+float ad2dist(int ad){
+	float D;
+	if (ad>=250){D=999;}
+	else if(ad<250){D=60;
+	if(ad<247){D=50;
+	if(ad<245){D=40;
+	if(ad<242){D=30;
+	if(ad<230){D=20;
+	if(ad<200){D=10;}}}}}}
+	return D;
+}
+
+
 void get_volt(char* out_ch0, char* ch0_data){
 	unsigned int val;
 	float volt_value;
@@ -13,7 +26,7 @@ void get_volt(char* out_ch0, char* ch0_data){
 	val	=	(ch0_data[1]	&	0b00001111)<<8;
 	val	+=	ch0_data[2];
 	volt_value	=	3.3*(float)val/4095.0;
-	printf("voltage = %f\n",volt_value);
+	printf("voltage = %f\n",(float)val);
 }
 
 /*

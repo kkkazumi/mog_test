@@ -17,6 +17,8 @@ OBJS = adcread.o servo.o
 $(TARGET): $(OBJS)
 	$(CC) -o $(TARGET) $(PROGRAM) $(CFLAGS) $(LDFLAGS)
 
+clean:
+	rm $(TARGET)
 
 #adcread: adcread.c
 #    g++ -L/usr/local/lib adcread.cpp -lbcm2835
