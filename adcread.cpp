@@ -10,8 +10,8 @@ void get_volt(char* out_ch0, char* ch0_data){
 	unsigned int val;
 	float volt_value;
 	bcm2835_spi_transfernb(out_ch0, ch0_data, 3);
-	val	=	(ch0_data[1]	&	0b11110000)<<8;
-	val	+=	(ch0_data[2]	&	0xff);
+	val	=	(ch0_data[1]	&	0b00001111)<<8;
+	val	+=	ch0_data[2];
 	volt_value	=	3.3*(float)val/4095.0;
 	printf("voltage = %f\n",volt_value);
 }
