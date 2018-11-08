@@ -6,6 +6,6 @@
 int main(int argc, char const* argv[]){
   mog_servo mogura;
 	mogura.setup();
-	mogura.move(75);
-	mogura.move(115);
+	mogura.move(80);
+	mogura.move(120);
 }
