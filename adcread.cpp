@@ -1,7 +1,38 @@
 #include <bcm2835.h>
 #include <stdio.h>
- 
- 
+
+void get_dist(char* out_ch0, char* ch0_data){
+	bcm2835_spi_transfernb(out_ch0, ch0_data, 3);
+	printf("CH0:    %02X %02X %02X\n", ch0_data[0], ch0_data[1], ch0_data[2]);
+}
+
+void get_volt(char* out_ch0, char* ch0_data){
+	unsigned int val;
+	float volt_value;
+	bcm2835_spi_transfernb(out_ch0, ch0_data, 3);
+	val	=	(ch0_data[1]	&	0b11110000)<<8;
+	val	+=	(ch0_data[2]	&	0xff);
+	volt_value	=	3.3*(float)val/4095.0;
+	printf("voltage = %f\n",volt_value);
+}
+
+/*
+unsigned int mcp_read(int pi_channel,int adc_channel){
+	unsigned	int	val	=	0;
+	unsigned	char	data[3]	=	{};
+
+	data[0]	=	0b00000110|(((pi_channel&0x04))>>2));
+	data[1]	=	0b00000000|(((pi_channel&0x03))<<6));
+	data[2]	=	0;
+	wiringPiSPIDataRW(pi_channel,data,sizeof(data));
+
+	val	=	(data[1]<<8)&0b111100000000;
+	val+=(data[2]&0xff);
+
+	return val;
+}
+*/
+
 int main(int arc, char **argv) 
 {
  
@@ -22,8 +53,11 @@ int main(int arc, char **argv)
   bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, LOW); 
 
   while(1){
+
       bcm2835_spi_transfernb(out_ch0, ch0_data, 3);
-      printf("CH0:    %02X %02X %02X\n", ch0_data[0], ch0_data[1], ch0_data[2]);
+      //printf("CH0:    %02X %02X %02X\n", ch0_data[0], ch0_data[1], ch0_data[2]);
+			//get_dist(out_ch0,ch0_data);
+			get_volt(out_ch0,ch0_data);
       bcm2835_spi_transfernb(out_ch1, ch1_data, 3);
       //printf("CH1:    %02X %02X %02X\n", ch1_data[0], ch1_data[1], ch1_data[2]);
       bcm2835_spi_transfernb(out_ch2, ch2_data, 3);
