@@ -19,7 +19,11 @@ class mog_servo
 };
 
 void mog_servo::setup(){
-	//motor setting
+
+	if(wiringPiSetupGpio()==-1){
+      std::cout<<"cannot setup gpio."<<std::endl;
+  }
+//motor setting
 	pinMode(MOTORPWM,PWM_OUTPUT);
 	pwmSetMode(PWM_MODE_MS);
 	pwmSetClock(400);
@@ -33,18 +37,12 @@ void mog_servo::move(int angle){
  
 int main(int argc, char const* argv[]){
   mog_servo mogura;
-  if(wiringPiSetupGpio()==-1){
-      std::cout<<"cannot setup gpio."<<std::endl;
-      return 1;
-  }
-
-	char command[256];
   mogura.setup();
  
 	int num=0;
-	while(num<10){
+	while(num<4){
 		std::cout<<num<<std::endl;
-    mogura.move(24);
+    mogura.move(75);
     mogura.move(115);
 		num++;
 	}
