@@ -35,6 +35,7 @@ void mog_servo::move(int angle){
   sleep(1);
 }
  
+ /*
 int main(int argc, char const* argv[]){
   mog_servo mogura;
   mogura.setup();
@@ -48,3 +49,4 @@ int main(int argc, char const* argv[]){
 	}
 	return 0;
 }
+*/
