@@ -8,13 +8,18 @@
 #include "servo.h"
 #include "adcread.h"
 
-#define MOG_UP 80
-#define MOG_DOWN 120
+#define MOG_UP 120
+#define MOG_DOWN 80
 
-#define PHOTO_THRE 0.4
+#define PHOTO_THRE 0.25
 
 #define S_UP 1
 #define S_DOWN 0
+
+void return_ud(int flg){
+	if(flg==S_UP) printf("UP\n");
+	if(flg==S_DOWN) printf("DOWN\n");
+}
 
 int main(int argc, char const* argv[]){
 	char out_ch0[] = { 0b00000110, 0b00000000, 0b00000000 };
@@ -28,10 +33,13 @@ int main(int argc, char const* argv[]){
 	mog_photo.set_adc();
 
 	float volt_val=0;
-	float before_volt=0.1;
+	float before_volt[100]={0};
 	int count = 0;
 	int ran=0;
+	mogura.move(MOG_DOWN);
+	sleep(1);
 	mogura.move(MOG_UP);
+	sleep(1);
 	int flg=S_UP;
 	time_t st_timer,now_timer;
 	st_timer = time(NULL);
@@ -46,7 +54,8 @@ int main(int argc, char const* argv[]){
 		//time
 		now_timer = time(NULL);
 		dt = difftime(now_timer,st_timer);
-		std::cout<<volt_val<<std::endl;
+		std::cout<<dt<<"\t"<<volt_val<<std::endl;
+		return_ud(flg);
 
 		//
 		if(flg == S_DOWN){
@@ -61,12 +70,15 @@ int main(int argc, char const* argv[]){
 				st_timer = time(NULL);
 				flg = S_DOWN;
 			}
-			if(volt_val>PHOTO_THRE){
+			/*
+			else if(volt_val>PHOTO_THRE){
 				mogura.move(MOG_DOWN);
 				st_timer = time(NULL);
 				flg = S_DOWN;
 			}
+			*/
 		}
 		before_volt=volt_val;
+//		sleep(1);
 	}
 }
