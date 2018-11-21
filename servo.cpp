@@ -32,7 +32,7 @@ void mog_servo::setup(){
 
 void mog_servo::move(int angle){
   pwmWrite(MOTORPWM,angle);
-  sleep(1);
+  //sleep(1);
 }
  
  /*
