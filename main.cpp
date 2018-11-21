@@ -31,8 +31,8 @@ int main(int argc, char const* argv[]){
 	float before_volt=0.1;
 	int count = 0;
 	int ran=0;
-	int flg=S_DOWN;
 	mogura.move(MOG_UP);
+	int flg=S_UP;
 	time_t st_timer,now_timer;
 	st_timer = time(NULL);
 	double dt;
@@ -45,13 +45,13 @@ int main(int argc, char const* argv[]){
 
 		//time
 		now_timer = time(NULL);
-		dt = difftime(st_timer,now_timer);
-		std::cout<<dt<<std::endl;
+		dt = difftime(now_timer,st_timer);
+		std::cout<<volt_val<<std::endl;
 
 		//
 		if(flg == S_DOWN){
 			if(dt > thre_time){
-				mogra.move(MOG_UP);
+				mogura.move(MOG_UP);
 				st_timer = time(NULL);
 				flg = S_UP;
 			}
@@ -62,14 +62,11 @@ int main(int argc, char const* argv[]){
 				flg = S_DOWN;
 			}
 			if(volt_val>PHOTO_THRE){
-				mogra.move(MOG_DOWN);
+				mogura.move(MOG_DOWN);
 				st_timer = time(NULL);
 				flg = S_DOWN;
 			}
 		}
-	}
-
 		before_volt=volt_val;
-
 	}
 }
