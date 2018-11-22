@@ -32,21 +32,4 @@ void mog_servo::setup(){
 
 void mog_servo::move(int angle){
   pwmWrite(MOTORPWM,angle);
-  //sleep(1);
 }
- 
- /*
-int main(int argc, char const* argv[]){
-  mog_servo mogura;
-  mogura.setup();
- 
-	int num=0;
-	while(num<4){
-		std::cout<<num<<std::endl;
-    mogura.move(75);
-    mogura.move(115);
-		num++;
-	}
-	return 0;
-}
-*/

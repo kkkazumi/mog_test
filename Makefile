@@ -15,7 +15,7 @@ OBJS = adcread.o servo.o
 
 #$(TARGET): $(PROGRAM)
 $(TARGET): $(OBJS)
-	$(CC) -o $(TARGET) $(PROGRAM) $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $(TARGET) $(OBJS) $(PROGRAM) $(CFLAGS) $(LDFLAGS)
 
 clean:
 	rm $(TARGET)
