@@ -10,6 +10,7 @@ class mog_adc
 		float get_volt(char* out_ch0, char* ch0_data);
 };
 
+/*
 void mog_adc::set_adc(){
   if(!bcm2835_init()) printf("end");
          
@@ -49,3 +50,4 @@ float mog_adc::get_volt(char* out_ch0, char* ch0_data){
 }
 
 
+*/
