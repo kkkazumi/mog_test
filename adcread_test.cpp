@@ -41,7 +41,7 @@ int main(int arc, char **argv)
 			mog_photo.read_val(out_ch0,ch0_data,3);
 			val = mog_photo.get_volt(out_ch0,ch0_data);
 
-			std::cout << realsec << "," << val << std::endl;
+			std::cout << realsec << ",\t" << val << std::endl;
   }
      
   bcm2835_spi_end();
