@@ -14,9 +14,9 @@ unsigned int mog_adc::WriteReg( uint8_t WriteAddr, uint8_t WriteData )
     unsigned int temp_val;
 
     unsigned char tx[2] = {WriteAddr, WriteData};
-	unsigned char rx[2] = {0};
+		unsigned char rx[2] = {0};
 
-	SPIdev::transfer("/dev/spidev0.1", tx, rx, 2);
+		SPIdev::transfer("/dev/spidev0.1", tx, rx, 2);
 
     return rx[1];
 }
@@ -48,15 +48,17 @@ void mog_adc::ReadRegs( uint8_t ReadAddr, uint8_t *ReadBuf, unsigned int Bytes )
 
 void mog_adc::read_photo(int ch)
 {
-    uint8_t response[1];
+    uint8_t response[3];
     int16_t bit_data;
     float data;
     int i;
 
+//		unsigned char out_ch0 = 0b00000110;
+		uint8_t out_ch0 = 0x00;
+
     //ReadRegs(MPUREG_ACCEL_XOUT_H,response,6);
-    ReadRegs(ch, response,1);
+    ReadRegs(out_ch0, response,1);
     for(i=0; i<3; i++) {
-        bit_data=((int16_t)response[i*2]<<8)|response[i*2+1];
         data=(float)bit_data;
         //accelerometer_data[i]=data/acc_divider;
         photo_data=data;

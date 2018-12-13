@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <getopt.h>
 
-
 #define REF_VOLTAGE     5.0     /* 基準電圧[V] */
 
 
@@ -20,8 +19,8 @@ int main(int arc, char **argv)
 {
 	mog_adc mog_photo;
 
-  unsigned char out_ch0[] = { 0b00000110, 0b00000000, 0b00000000 };
-  unsigned char ch0_data[] = { 0x00, 0x00, 0x00 };
+//  unsigned char out_ch0[] = { 0b00000110, 0b00000000, 0b00000000 };
+//  unsigned char ch0_data[] = { 0x00, 0x00, 0x00 };
 
 	float val;
 
