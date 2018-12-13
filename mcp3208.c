@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -126,6 +127,7 @@ int mcp3208_read(struct mcp3208 *adc, int ch, uint16_t *digit)
         /* 受信バッファからA/D変換結果を取り出す */
         *digit = (rx[1] & 0x0f) << 8;
         *digit |= rx[2];
+				printf("digit,%d\n",digit);
 
         return 0;
 }
