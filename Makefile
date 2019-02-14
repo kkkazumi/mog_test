@@ -7,7 +7,7 @@ OS=$(shell uname | cut -d_ -f1)
 PATH_LIB = /usr/local/lib
 PATH_INC = /usr/local/include
 
-LDFLAGS = -L$(PATH_LIB) -lbcm2835 -lwiringPi
+LDFLAGS = -L$(PATH_LIB) -lbcm2835 -lwiringPi -lpthread
 CFLAGS = -I$(PATH_INC)
 
 PROGRAM=$(addsuffix .cpp, $(TARGET))
@@ -19,6 +19,7 @@ $(TARGET): $(OBJS)
 
 clean:
 	rm $(TARGET)
+	rm *.o
 
 #adcread: adcread.c
 #    g++ -L/usr/local/lib adcread.cpp -lbcm2835
