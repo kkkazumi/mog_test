@@ -18,7 +18,11 @@
 #define S_UP 1
 #define S_DOWN 0
 
-float data[11] = {0};
+
+struct timeval stTime, nowTime;
+time_t diffsec;
+suseconds_t diffsub;
+double realsec;
 
 
 pthread_mutex_t mutex;
@@ -38,7 +42,6 @@ void* photo_test(void* arg){
 		mog_photo.read_val(out_ch0,ch0_data,3);
 		volt_val = mog_photo.get_volt(out_ch0,ch0_data);
 //		printf("photo volt%f\n",volt_val);
-		data[0] = volt_val;
 	}
 }
 
@@ -50,8 +53,15 @@ void* fsr_test(void* arg){
 	float volt_photo;
 	float volt_fsr;
 	mog_adc mog_photo;
+	FILE *fp_ad;
+	fp_ad = fopen("ad_data_test.csv","w");
 
 	while(1){
+		gettimeofday(&stTime,NULL);
+		diffsec = difftime(nowTime.tv_sec, stTime.tv_sec);
+		diffsub = nowTime.tv_usec - stTime.tv_usec;
+		realsec = diffsec + diffsub*1e-6;
+
 		mog_photo.read_val(out_ch0,ch0_data,3);
 		volt_photo= mog_photo.get_volt(out_ch0,ch0_data);
 
@@ -59,25 +69,12 @@ void* fsr_test(void* arg){
 		volt_fsr= mog_photo.get_volt(out_ch1,ch1_data);
 //		printf("fsr volt%f\n",volt_val);
 
-		data[0] = volt_photo;
-		data[1] = volt_fsr;
+//		data[0] = volt_photo;
+//		data[1] = volt_fsr;
+		fprintf(fp_ad,"%f,%f,%f\n",realsec,volt_photo,volt_fsr);
 	}
+	fclose(fp_ad);
 }
-
-void* print_all(void *arg){
-	FILE *fp;
-	fp = fopen("data_test.csv","w");
-	while(1){
-		fprintf(fp,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
-		data[0],data[1],
-		data[2],data[3],data[4],
-		data[5],data[6],data[7],
-		data[8],data[9],data[10]);
-		printf("%f,%f\n",data[0],data[1]);
-	}
-	fclose(fp);
-}
-
 
 void* imu_test(void* arg){
 	float ax,ay,az;
@@ -85,37 +82,37 @@ void* imu_test(void* arg){
 	float mx,my,mz;
 	int ref;
 
+	FILE *fp_imu;
+	fp_imu = fopen("imu_data_test.csv","w");
+
 	MPU9250 mog_mpu;
 	mog_mpu.initialize();
 	ref=mog_mpu.testConnection();
 
 	while(1){
+		gettimeofday(&stTime,NULL);
+		diffsec = difftime(nowTime.tv_sec, stTime.tv_sec);
+		diffsub = nowTime.tv_usec - stTime.tv_usec;
+		realsec = diffsec + diffsub*1e-6;
+
 		mog_mpu.getMotion9(&ax,&ay,&az,&gx,&gy,&gz,&mx,&my,&mz);
 
 		printf("%f,%f,%f,",ax,ay,az);
 		printf("%f,%f,%f\n",gx,gy,gz);
 		printf("%f,%f,%f\n",mx,my,mz);
-		data[2] = ax;
-		data[3] = ay;
-		data[4] = az;
-		data[5] = gx;
-		data[6] = gy;
-		data[7] = gz;
-		data[8] = mx;
-		data[9] = my;
-		data[10] = mz;
 
+		fprintf(fp_imu,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+			realsec,ax,ay,az,gx,gy,gz,mx,my,mz);
 	}
+	fclose(fp_imu);
 
 }
 
 int main(int argc, char const* argv[]){
 
 	pthread_t thr_sv;
-	pthread_t thr_ad;
 	pthread_t thr_imu;
 	pthread_t thr_fsr;
-	pthread_t thr_prt;
 	//class
 //	mog_servo mogura;
 	mog_adc mog_photo;
@@ -139,17 +136,16 @@ int main(int argc, char const* argv[]){
 	//pthread_create(&thr_ad, NULL, photo_test,NULL);
 	pthread_create(&thr_imu, NULL, imu_test,NULL);
 	pthread_create(&thr_fsr, NULL, fsr_test,NULL);
-	pthread_create(&thr_prt, NULL, print_all,NULL);
 
 
 	pthread_join(thr_sv,NULL);
 	//pthread_join(thr_ad,NULL);
 	pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
-	pthread_join(thr_prt,NULL);
 
 	pthread_mutex_destroy(&mutex);
 }
+
 /*
 	while(1){
 		//photo
