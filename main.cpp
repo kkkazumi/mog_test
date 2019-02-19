@@ -18,7 +18,7 @@
 #define S_UP 1
 #define S_DOWN 0
 
-float data[2] = {0};
+float data[11] = {0};
 
 
 pthread_mutex_t mutex;
@@ -68,7 +68,11 @@ void* print_all(void *arg){
 	FILE *fp;
 	fp = fopen("data_test.csv","w");
 	while(1){
-		fprintf(fp,"%f,%f\n",data[0],data[1]);
+		fprintf(fp,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+		data[0],data[1],
+		data[2],data[3],data[4],
+		data[5],data[6],data[7],
+		data[8],data[9],data[10]);
 		printf("%f,%f\n",data[0],data[1]);
 	}
 	fclose(fp);
@@ -78,6 +82,7 @@ void* print_all(void *arg){
 void* imu_test(void* arg){
 	float ax,ay,az;
 	float gx,gy,gz;
+	float mx,my,mz;
 	int ref;
 
 	MPU9250 mog_mpu;
@@ -85,9 +90,20 @@ void* imu_test(void* arg){
 	ref=mog_mpu.testConnection();
 
 	while(1){
-		mog_mpu.getMotion6(&ax,&ay,&az,&gx,&gy,&gz);
-		//printf("%f,%f,%f,",ax,ay,az);
-		//printf("%f,%f,%f\n",gx,gy,gz);
+		mog_mpu.getMotion9(&ax,&ay,&az,&gx,&gy,&gz,&mx,&my,&mz);
+
+		printf("%f,%f,%f,",ax,ay,az);
+		printf("%f,%f,%f\n",gx,gy,gz);
+		printf("%f,%f,%f\n",mx,my,mz);
+		data[2] = ax;
+		data[3] = ay;
+		data[4] = az;
+		data[5] = gx;
+		data[6] = gy;
+		data[7] = gz;
+		data[8] = mx;
+		data[9] = my;
+		data[10] = mz;
 
 	}
 
@@ -121,14 +137,14 @@ int main(int argc, char const* argv[]){
 	pthread_create(&thr_sv, NULL, servo_test,NULL);
 	//pthread_create(&thr_ad, NULL, photo_test,&mog_photo);
 	//pthread_create(&thr_ad, NULL, photo_test,NULL);
-//	pthread_create(&thr_imu, NULL, imu_test,NULL);
+	pthread_create(&thr_imu, NULL, imu_test,NULL);
 	pthread_create(&thr_fsr, NULL, fsr_test,NULL);
 	pthread_create(&thr_prt, NULL, print_all,NULL);
 
 
 	pthread_join(thr_sv,NULL);
 	//pthread_join(thr_ad,NULL);
-//	pthread_join(thr_imu,NULL);
+	pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
 	pthread_join(thr_prt,NULL);
 
