@@ -6,34 +6,34 @@
 #include <unistd.h>
 
 #include <pthread.h>
+#include <thread.h>
+#include <mutex.h>
 
 #include "adcread.h"
 #include "MPU9250.h"
 
 #define ABUF_SIZE 5
 #define IBUF_SIZE 9
-#define SET 20
+#define SET 100
 #define ALOGBUFSIZE (ABUF_SIZE * SET)
 #define ILOGBUFSIZE (IBUF_SIZE * SET)
 
 struct timeval stTime, nowTime;
 time_t diffsec;
 suseconds_t diffsub;
-double realsec;
 
 float adBuf[ABUF_SIZE];
 float imBuf[IBUF_SIZE];
 
 float *rp_a,*rp_i, *wp_a,*wp_i;
-int r_count, wa_count, wi_count;
+int ra_count, ri_count, wa_count, wi_count;
 
-pthread_mutex_t lock;
+std::mutex mtx;
 
 void* servo_test(void* arg){
 	int ret;
 	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/simpletest.py");
 }
-
 
 void* fsr_test(void* arg){
 	char out_ch0[] = { 0b00000110, 0b00000000, 0b00000000 };
@@ -43,16 +43,15 @@ void* fsr_test(void* arg){
 	float volt_photo;
 	float volt_fsr;
 	mog_adc mog_photo;
-	//FILE *fp_ad;
-	//fp_ad = fopen("ad_data_test.csv","w");
 	float data[5];
 
 	while(1){
 		if(wa_count == SET){
 			wa_count = 0;
-			pthread_mutex_lock(&lock);
+			//pthread_mutex_lock(&lock);
+			std::lock_guard<std::mutex> lock(mtx);
 			wp_a = adBuf;
-			pthread_mutex_unlock(&lock);
+			//pthread_mutex_unlock(&lock);
 		}
 
 		mog_photo.read_val(out_ch0,ch0_data,3);
@@ -69,14 +68,17 @@ void* fsr_test(void* arg){
 		data[3] = nowTime.tv_sec;
 		data[4] = nowTime.tv_usec;
 
-		pthread_mutex_lock(&lock);
+		//pthread_mutex_lock(&lock);
+		std::lock_guard<std::mutex> lock(mtx);
 		memcpy(data,sizeof(float)*ABUF_SIZE);
-		wp_a+=LOGBUFSIZE;//?!
+		wp_a+=ABUF_SIZE;//?!
 		wa_count++;
-		pthread_mutex_unlock(&lock);
+		//pthread_mutex_unlock(&lock);
 	}
 }
 
+	//FILE *fp_ad;
+	//fp_ad = fopen("ad_data_test.csv","w");
 //		printf("fsr volt%f\n",volt_val);
 	//fclose(fp_ad);
 	//	fprintf(fp_ad,"%f,%f,%f\n",realsec,volt_photo,volt_fsr);
@@ -101,29 +103,32 @@ void *save_log(void* arg)
 	}
 
 	if(ra_count == 0){
-		pthread_mutex_lock(&lock);
+		//pthread_mutex_lock(&lock);
+		std::lock_guard<std::mutex> lock(mtx);
 		rp_a = adBuf;
-		pthread_mutex_unlock(&lock);
+		//pthread_mutex_unlock(&lock);
 	}
 	if(ri_count == 0){
-		pthread_mutex_lock(&lock);
+		std::lock_guard<std::mutex> lock(mtx);
+		//pthread_mutex_lock(&lock);
 		rp_i = imBuf;
-		pthread_mutex_unlock(&lock);
+		//pthread_mutex_unlock(&lock);
 	}
 
-	pthread_mutex_lock(&lock);
-	write(fdf_a,rp_a,sizeof(float)*LOGBUFSIZE);
-	write(fdf_i,rp_i,sizeof(float)*LOGBUFSIZE);
+	//pthread_mutex_lock(&lock);
+	std::lock_guard<std::mutex> lock(mtx);
+	write(fdf_a,rp_a,sizeof(float)*ABUF_SIZE);
+	write(fdf_i,rp_i,sizeof(float)*IBUF_SIZE);
 
-	rp_a+=LOGBUFSIZE;
-	rp_i+=LOGBUFSIZE;
+	rp_a+=ABUF_SIZE;
+	rp_i+=IBUF_SIZE;
 
 	ra_count++;
 	ri_count++;
 
 	if(ra_count == SET) ra_count = 0;
 	if(ri_count == SET) ri_count = 0;
-	pthread_mutex_unlock(&lock);
+	//pthread_mutex_unlock(&lock);
 
 	close(fdf_a);
 	close(fdf_i);
@@ -142,10 +147,11 @@ void* imu_test(void* arg){
 
 	while(1){
 		if(wi_count == SET){
-			pthread_mutex_lock(&lock);
+			//pthread_mutex_lock(&lock);
+			std::lock_guard<std::mutex> lock(mtx);
 			wi_count = 0;
 			wp_i = adBuf;
-			pthread_mutex_unlock(&lock);
+			//pthread_mutex_unlock(&lock);
 		}
 
 		mog_mpu.getMotion9(&ax,&ay,&az,&gx,&gy,&gz,&mx,&my,&mz);
@@ -161,10 +167,11 @@ void* imu_test(void* arg){
 		data[7] = nowTime.tv_sec;
 		data[8] = nowTime.tv_usec;
 
-		pthread_mutex_lock(&lock);
+		std::lock_guard<std::mutex> lock(mtx);
+		//pthread_mutex_lock(&lock);
 		memcpy(data,sizeof(float)*IBUF_SIZE);
-		wp_i+=IBUFSIZE;//?!
-		pthread_mutex_unlock(&lock);
+		wp_i+=IBUF_SIZE;//?!
+		//pthread_mutex_unlock(&lock);
 	}
 }
 
@@ -188,7 +195,7 @@ int main(int argc, char const* argv[]){
 //	mogura.setup();
 	mog_photo.set_adc();
 
-	pthread_mutex_init(&lock, NULL);
+	//pthread_mutex_init(&lock, NULL);
 
 	float volt_val=0;
 	float before_volt=0.1;
@@ -211,5 +218,5 @@ int main(int argc, char const* argv[]){
 	pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
 
-	pthread_mutex_destroy(&mutex);
+	//pthread_mutex_destroy(&mutex);
 }
