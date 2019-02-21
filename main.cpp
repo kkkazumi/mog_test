@@ -6,21 +6,21 @@
 #include <unistd.h>
 
 #include <pthread.h>
-#include <thread.h>
-#include <mutex.h>
+#include <thread>
+#include <mutex>
 
 #include "adcread.h"
 #include "MPU9250.h"
 
-#define ABUF_SIZE 5
-#define IBUF_SIZE 9
-#define SET 100
+#define ABUF_SIZE (5)
+#define IBUF_SIZE (9) 
+#define SET (100) 
 #define ALOGBUFSIZE (ABUF_SIZE * SET)
 #define ILOGBUFSIZE (IBUF_SIZE * SET)
 
-struct timeval stTime, nowTime;
-time_t diffsec;
-suseconds_t diffsub;
+struct timeval nowTime;
+time_t now;
+struct tm *pnow = localtime(&now);
 
 float adBuf[ABUF_SIZE];
 float imBuf[IBUF_SIZE];
@@ -60,17 +60,18 @@ void* fsr_test(void* arg){
 		mog_photo.read_val(out_ch1,ch1_data,3);
 		volt_fsr= mog_photo.get_volt(out_ch1,ch1_data);
 
-		gettimeofday(&stTime,NULL);
+		gettimeofday(&nowTime,NULL);
+		struct tm *pnow = localtime(&now);
 
 		data[0] = volt_photo;
 		data[1] = volt_fsr;
-		data[2] = nowTime.tv_min;
-		data[3] = nowTime.tv_sec;
-		data[4] = nowTime.tv_usec;
+		data[2] = (float)(pnow->tm_min);
+		data[3] = (float)nowTime.tv_sec;
+		data[4] = (float)nowTime.tv_usec;
 
 		//pthread_mutex_lock(&lock);
 		std::lock_guard<std::mutex> lock(mtx);
-		memcpy(data,sizeof(float)*ABUF_SIZE);
+		memcpy(wp_a,data,sizeof(float)*ABUF_SIZE);
 		wp_a+=ABUF_SIZE;//?!
 		wa_count++;
 		//pthread_mutex_unlock(&lock);
@@ -155,7 +156,8 @@ void* imu_test(void* arg){
 		}
 
 		mog_mpu.getMotion9(&ax,&ay,&az,&gx,&gy,&gz,&mx,&my,&mz);
-		gettimeofday(&stTime,NULL);
+		gettimeofday(&nowTime,NULL);
+		struct tm *pnow = localtime(&now);
 
 		data[0] = ax;
 		data[1] = ay;
@@ -163,13 +165,13 @@ void* imu_test(void* arg){
 		data[3] = gx;
 		data[4] = gy;
 		data[5] = gz;
-		data[6] = nowTime.tv_min;
-		data[7] = nowTime.tv_sec;
-		data[8] = nowTime.tv_usec;
+		data[6] = (float)(pnow->tm_min);
+		data[7] = (float)nowTime.tv_sec;
+		data[8] = (float)nowTime.tv_usec;
 
 		std::lock_guard<std::mutex> lock(mtx);
 		//pthread_mutex_lock(&lock);
-		memcpy(data,sizeof(float)*IBUF_SIZE);
+		memcpy(wp_i,data,sizeof(float)*IBUF_SIZE);
 		wp_i+=IBUF_SIZE;//?!
 		//pthread_mutex_unlock(&lock);
 	}
@@ -189,6 +191,7 @@ int main(int argc, char const* argv[]){
 	pthread_t thr_sv;
 	pthread_t thr_imu;
 	pthread_t thr_fsr;
+
 	//class
 //	mog_servo mogura;
 	mog_adc mog_photo;
@@ -197,16 +200,15 @@ int main(int argc, char const* argv[]){
 
 	//pthread_mutex_init(&lock, NULL);
 
-	float volt_val=0;
-	float before_volt=0.1;
-	int count = 0;
-	int ran=0;
+	//float volt_val=0;
+	//float before_volt=0.1;
+	//int count = 0;
+	//int ran=0;
 //	mogura.move(MOG_UP);
 //	int flg=S_UP;
-	time_t st_timer,now_timer;
-	st_timer = time(NULL);
-	double dt;
-	double thre_time = 3;
+//j:w
+//time_t st_timer,now_timer;
+//	st_timer = time(NULL);
 
 	pthread_create(&thr_sv, NULL, servo_test,NULL);
 	pthread_create(&thr_imu, NULL, imu_test,NULL);
@@ -214,9 +216,6 @@ int main(int argc, char const* argv[]){
 
 
 	pthread_join(thr_sv,NULL);
-	//pthread_join(thr_ad,NULL);
 	pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
-
-	//pthread_mutex_destroy(&mutex);
 }
