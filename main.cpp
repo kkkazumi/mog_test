@@ -19,12 +19,8 @@
 #define S_DOWN 0
 
 
-struct timeval stTime, nowTime;
-time_t diffsec;
-suseconds_t diffsub;
-double realsec;
 
-
+struct timeval stTime;
 pthread_mutex_t mutex;
 
 void* servo_test(void* arg){
@@ -46,6 +42,10 @@ void* photo_test(void* arg){
 }
 
 void* fsr_test(void* arg){
+
+	time_t timer;
+	struct tm *t_st = localtime(&timer);
+
 	char out_ch0[] = { 0b00000110, 0b00000000, 0b00000000 };
 	char out_ch1[] = { 0b00000110, 0b01000000, 0b00000000 };
 	char ch0_data[] = { 0x00, 0x00, 0x00 };
@@ -53,30 +53,43 @@ void* fsr_test(void* arg){
 	float volt_photo;
 	float volt_fsr;
 	mog_adc mog_photo;
+	mog_photo.set_adc();
+
 	FILE *fp_ad;
 	fp_ad = fopen("ad_data_test.csv","w");
+	float data[5];
 
 	while(1){
-		gettimeofday(&stTime,NULL);
-		diffsec = difftime(nowTime.tv_sec, stTime.tv_sec);
-		diffsub = nowTime.tv_usec - stTime.tv_usec;
-		realsec = diffsec + diffsub*1e-6;
 
-		mog_photo.read_val(out_ch0,ch0_data,3);
 		volt_photo= mog_photo.get_volt(out_ch0,ch0_data);
-
-		mog_photo.read_val(out_ch1,ch1_data,3);
 		volt_fsr= mog_photo.get_volt(out_ch1,ch1_data);
+
+		struct timeval nowTime;
+		gettimeofday(&nowTime,NULL);
+		time(&timer);
+		t_st = localtime(&timer);
 //		printf("fsr volt%f\n",volt_val);
+
+		data[0] = volt_photo;
+		data[1] = volt_fsr;
+		data[2] = (float)(t_st->tm_min);
+		data[3] = (float)(t_st->tm_sec);
+		data[4] = (float)nowTime.tv_usec;
 
 //		data[0] = volt_photo;
 //		data[1] = volt_fsr;
-		fprintf(fp_ad,"%f,%f,%f\n",realsec,volt_photo,volt_fsr);
+		printf("%f,%f,%d,%d,%f,\n",
+			data[0],data[1],(int)t_st->tm_min,(int)t_st->tm_sec,data[4]);
+			//data[0],data[1],data[2],data[3],data[4]);
 	}
 	fclose(fp_ad);
 }
 
 void* imu_test(void* arg){
+
+	time_t timer;
+	struct tm *t_st = localtime(&timer);
+
 	float ax,ay,az;
 	float gx,gy,gz;
 	float mx,my,mz;
@@ -88,21 +101,36 @@ void* imu_test(void* arg){
 	MPU9250 mog_mpu;
 	mog_mpu.initialize();
 	ref=mog_mpu.testConnection();
+	float data[9];
 
 	while(1){
-		gettimeofday(&stTime,NULL);
-		diffsec = difftime(nowTime.tv_sec, stTime.tv_sec);
-		diffsub = nowTime.tv_usec - stTime.tv_usec;
-		realsec = diffsec + diffsub*1e-6;
 
 		mog_mpu.getMotion9(&ax,&ay,&az,&gx,&gy,&gz,&mx,&my,&mz);
+
+		struct timeval nowTime;
+		gettimeofday(&nowTime,NULL);
+		time(&timer);
+		t_st = localtime(&timer);
+//		printf("fsr volt%f\n",volt_val);
+
+		data[0] = ax;
+		data[1] = ay;
+		data[2] = az;
+		data[3] = gx;
+		data[4] = gy;
+		data[5] = gz;
+		data[6] = (float)(t_st->tm_min);
+		data[7] = (float)nowTime.tv_sec;
+		data[8] = (float)nowTime.tv_usec;
 
 		printf("%f,%f,%f,",ax,ay,az);
 		printf("%f,%f,%f\n",gx,gy,gz);
 		printf("%f,%f,%f\n",mx,my,mz);
 
-		fprintf(fp_imu,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
-			realsec,ax,ay,az,gx,gy,gz,mx,my,mz);
+		fprintf(fp_imu,"%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+			data[0],data[1],data[2],data[3],data[4],data[5],
+			data[6],data[7],data[8]);
+			//ax,ay,az,gx,gy,gz,mx,my,mz);
 	}
 	fclose(fp_imu);
 
@@ -113,23 +141,26 @@ int main(int argc, char const* argv[]){
 	pthread_t thr_sv;
 	pthread_t thr_imu;
 	pthread_t thr_fsr;
-	//class
-//	mog_servo mogura;
-	mog_adc mog_photo;
-//	mogura.setup();
-	mog_photo.set_adc();
 
+	gettimeofday(&stTime,NULL);
+//class
+//	mog_servo mogura;
+/*
+	
 
 	float volt_val=0;
 	float before_volt=0.1;
 	int count = 0;
 	int ran=0;
+	*/
+
+
 //	mogura.move(MOG_UP);
 //	int flg=S_UP;
-	time_t st_timer,now_timer;
-	st_timer = time(NULL);
-	double dt;
-	double thre_time = 3;
+	//time_t st_timer,now_timer;
+	//st_timer = time(NULL);
+	//double dt;
+	//double thre_time = 3;
 
 	pthread_create(&thr_sv, NULL, servo_test,NULL);
 	//pthread_create(&thr_ad, NULL, photo_test,&mog_photo);
