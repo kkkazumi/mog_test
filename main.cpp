@@ -6,12 +6,11 @@
 #include <unistd.h>
 
 #include <pthread.h>
-#include <thread>
 #include <mutex>
+#include <string.h>
 
 #include "adcread.h"
 #include "MPU9250.h"
-
 #define ABUF_SIZE (5)
 #define IBUF_SIZE (9) 
 #define SET (100) 
@@ -36,6 +35,7 @@ void* servo_test(void* arg){
 }
 
 void* fsr_test(void* arg){
+	printf("fsr in");
 	char out_ch0[] = { 0b00000110, 0b00000000, 0b00000000 };
 	char out_ch1[] = { 0b00000110, 0b01000000, 0b00000000 };
 	char ch0_data[] = { 0x00, 0x00, 0x00 };
@@ -46,6 +46,7 @@ void* fsr_test(void* arg){
 	float data[5];
 
 	while(1){
+	/*
 		if(wa_count == SET){
 			wa_count = 0;
 			//pthread_mutex_lock(&lock);
@@ -53,11 +54,12 @@ void* fsr_test(void* arg){
 			wp_a = adBuf;
 			//pthread_mutex_unlock(&lock);
 		}
+	*/
 
-		mog_photo.read_val(out_ch0,ch0_data,3);
+		//mog_photo.read_val(out_ch0,ch0_data,3);
 		volt_photo= mog_photo.get_volt(out_ch0,ch0_data);
 
-		mog_photo.read_val(out_ch1,ch1_data,3);
+		//mog_photo.read_val(out_ch1,ch1_data,3);
 		volt_fsr= mog_photo.get_volt(out_ch1,ch1_data);
 
 		gettimeofday(&nowTime,NULL);
@@ -68,13 +70,18 @@ void* fsr_test(void* arg){
 		data[2] = (float)(pnow->tm_min);
 		data[3] = (float)nowTime.tv_sec;
 		data[4] = (float)nowTime.tv_usec;
+		for(int i = 0;i<5;i++){
+			printf("%f\n",data[i]);
+		}
 
+/*
 		//pthread_mutex_lock(&lock);
 		std::lock_guard<std::mutex> lock(mtx);
-		memcpy(wp_a,data,sizeof(float)*ABUF_SIZE);
+		//memcpy(wp_a,data,sizeof(float)*ABUF_SIZE);
 		wp_a+=ABUF_SIZE;//?!
 		wa_count++;
 		//pthread_mutex_unlock(&lock);
+		*/
 	}
 }
 
@@ -86,6 +93,7 @@ void* fsr_test(void* arg){
 
 void *save_log(void* arg)
 {
+	printf("in save");
 	int i;
 	int fdf_a,fdf_i;
 
@@ -103,32 +111,34 @@ void *save_log(void* arg)
 		exit(EXIT_FAILURE);
 	}
 
-	if(ra_count == 0){
+	while(1){
+		if(ra_count == 0){
+			//pthread_mutex_lock(&lock);
+			std::lock_guard<std::mutex> lock(mtx);
+			rp_a = adBuf;
+			//pthread_mutex_unlock(&lock);
+		}
+		if(ri_count == 0){
+			std::lock_guard<std::mutex> lock(mtx);
+			//pthread_mutex_lock(&lock);
+			rp_i = imBuf;
+			//pthread_mutex_unlock(&lock);
+		}
+
 		//pthread_mutex_lock(&lock);
 		std::lock_guard<std::mutex> lock(mtx);
-		rp_a = adBuf;
-		//pthread_mutex_unlock(&lock);
+		write(fdf_a,rp_a,sizeof(float)*ABUF_SIZE);
+		write(fdf_i,rp_i,sizeof(float)*IBUF_SIZE);
+
+		rp_a+=ABUF_SIZE;
+		rp_i+=IBUF_SIZE;
+
+		ra_count++;
+		ri_count++;
+
+		if(ra_count == SET) ra_count = 0;
+		if(ri_count == SET) ri_count = 0;
 	}
-	if(ri_count == 0){
-		std::lock_guard<std::mutex> lock(mtx);
-		//pthread_mutex_lock(&lock);
-		rp_i = imBuf;
-		//pthread_mutex_unlock(&lock);
-	}
-
-	//pthread_mutex_lock(&lock);
-	std::lock_guard<std::mutex> lock(mtx);
-	write(fdf_a,rp_a,sizeof(float)*ABUF_SIZE);
-	write(fdf_i,rp_i,sizeof(float)*IBUF_SIZE);
-
-	rp_a+=ABUF_SIZE;
-	rp_i+=IBUF_SIZE;
-
-	ra_count++;
-	ri_count++;
-
-	if(ra_count == SET) ra_count = 0;
-	if(ri_count == SET) ri_count = 0;
 	//pthread_mutex_unlock(&lock);
 
 	close(fdf_a);
@@ -186,36 +196,33 @@ void* imu_test(void* arg){
 
 //	fclose(fp_imu);
 
+void *test(void *argv){
+	int count=0;
+	while(1){
+		if(count%10==0){
+			printf("dummy func\n");
+		}
+		count++;
+	}
+}
+
 int main(int argc, char const* argv[]){
 
 	pthread_t thr_sv;
-	pthread_t thr_imu;
+	//pthread_t thr_imu;
 	pthread_t thr_fsr;
+	pthread_t thr_log;
 
-	//class
-//	mog_servo mogura;
-	mog_adc mog_photo;
-//	mogura.setup();
-	mog_photo.set_adc();
 
-	//pthread_mutex_init(&lock, NULL);
-
-	//float volt_val=0;
-	//float before_volt=0.1;
-	//int count = 0;
-	//int ran=0;
-//	mogura.move(MOG_UP);
-//	int flg=S_UP;
-//j:w
-//time_t st_timer,now_timer;
-//	st_timer = time(NULL);
-
-	pthread_create(&thr_sv, NULL, servo_test,NULL);
-	pthread_create(&thr_imu, NULL, imu_test,NULL);
+	pthread_create(&thr_sv, NULL, test,NULL);
+//	pthread_create(&thr_sv, NULL, test,NULL);
+	//pthread_create(&thr_imu, NULL, imu_test,NULL);
 	pthread_create(&thr_fsr, NULL, fsr_test,NULL);
+	pthread_create(&thr_log, NULL, save_log,NULL);
 
 
 	pthread_join(thr_sv,NULL);
-	pthread_join(thr_imu,NULL);
+	//pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
+	pthread_join(thr_log,NULL);
 }
