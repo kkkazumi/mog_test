@@ -15,7 +15,7 @@ OBJS = adcread.o servo.o mpu9250.o
 
 #$(TARGET): $(PROGRAM)
 $(TARGET): $(OBJS)
-	$(CC) -o $(TARGET) $(OBJS) $(PROGRAM) $(CFLAGS) $(LDFLAGS)
+	$(CC) -std=c++11 -o $(TARGET) $(OBJS) $(PROGRAM) $(CFLAGS) $(LDFLAGS)
 
 clean:
 	rm $(TARGET)

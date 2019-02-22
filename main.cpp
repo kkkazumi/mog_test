@@ -78,7 +78,7 @@ void* fsr_test(void* arg){
 
 //		data[0] = volt_photo;
 //		data[1] = volt_fsr;
-		printf("%f,%f,%d,%d,%f,\n",
+		fprintf(fp_ad,"%f,%f,%d,%d,%f,\n",
 			data[0],data[1],(int)t_st->tm_min,(int)t_st->tm_sec,data[4]);
 			//data[0],data[1],data[2],data[3],data[4]);
 	}
@@ -120,16 +120,16 @@ void* imu_test(void* arg){
 		data[4] = gy;
 		data[5] = gz;
 		data[6] = (float)(t_st->tm_min);
-		data[7] = (float)nowTime.tv_sec;
+		data[7] = (float)(t_st->tm_sec);
 		data[8] = (float)nowTime.tv_usec;
 
 		printf("%f,%f,%f,",ax,ay,az);
 		printf("%f,%f,%f\n",gx,gy,gz);
 		printf("%f,%f,%f\n",mx,my,mz);
 
-		fprintf(fp_imu,"%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+		fprintf(fp_imu,"%f,%f,%f,%f,%f,%f,%d,%d,%f\n",
 			data[0],data[1],data[2],data[3],data[4],data[5],
-			data[6],data[7],data[8]);
+			t_st->tm_min,t_st->tm_sec,data[8]);
 			//ax,ay,az,gx,gy,gz,mx,my,mz);
 	}
 	fclose(fp_imu);
