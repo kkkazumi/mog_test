@@ -1,3 +1,4 @@
+//for test
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -22,6 +23,23 @@
 
 struct timeval stTime;
 pthread_mutex_t mutex;
+
+
+//////test for detect and down
+void* mog_1_up(void* arg){
+	int ret;
+	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_up.py");
+}
+
+void* mog_1_down(void* arg){
+	int ret;
+	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_down.py");
+}
+
+
+//////////
+
+
 
 void* servo_test(void* arg){
 	int ret;
@@ -180,30 +198,11 @@ int main(int argc, char const* argv[]){
 	pthread_t thr_fsr;
 
 	gettimeofday(&stTime,NULL);
-//class
-//	mog_servo mogura;
-/*
-	
-
-	float volt_val=0;
-	float before_volt=0.1;
-	int count = 0;
-	int ran=0;
-	*/
-
-
-//	mogura.move(MOG_UP);
-//	int flg=S_UP;
-	//time_t st_timer,now_timer;
-	//st_timer = time(NULL);
-	//double dt;
-	//double thre_time = 3;
 
 	pthread_create(&thr_sv, NULL, servo_test,NULL);
-	//pthread_create(&thr_ad, NULL, photo_test,&mog_photo);
-	//pthread_create(&thr_ad, NULL, photo_test,NULL);
 	pthread_create(&thr_imu, NULL, imu_test,NULL);
 	pthread_create(&thr_fsr, NULL, fsr_test,NULL);
+
 
 
 	pthread_join(thr_sv,NULL);
