@@ -11,6 +11,9 @@
 #include "adcread.h"
 #include "MPU9250.h"
 
+#include <assert.h>
+#include "MovingAverage.h"
+
 //#define MOG_UP 80
 //#define MOG_DOWN 120
 
@@ -19,13 +22,25 @@
 #define S_UP 1
 #define S_DOWN 0
 
-
-
 struct timeval stTime;
 pthread_mutex_t mutex;
 
 
+class mogura
+{
+private:
+	float ad_data[8][2000];
+	float imu_data[6][500];
+
+public:
+	static void* servo_test(void* arg);
+	static void* fsr_test(void* arg);
+	static void* imu_test(void* arg);
+};
+	
 //////test for detect and down
+
+/*
 void* mog_1_up(void* arg){
 	int ret;
 	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_up.py");
@@ -35,31 +50,20 @@ void* mog_1_down(void* arg){
 	int ret;
 	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_down.py");
 }
-
+*/
 
 //////////
 
 
 
-void* servo_test(void* arg){
+//void* servo_test(void* arg){
+void* mogura::servo_test(void* arg){
 	int ret;
 	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/random7.py");
 }
 
-void* photo_test(void* arg){
-	char out_ch0[] = { 0b00000110, 0b01000000, 0b00000000 };
-	char ch0_data[] = { 0x00, 0x00, 0x00 };
-	float volt_val;
-	mog_adc mog_photo;
-
-	while(1){
-		mog_photo.read_val(out_ch0,ch0_data,3);
-		volt_val = mog_photo.get_volt(out_ch0,ch0_data);
-//		printf("photo volt%f\n",volt_val);
-	}
-}
-
-void* fsr_test(void* arg){
+//void* fsr_test(void* arg){
+void* mogura::fsr_test(void* arg){
 
 	time_t timer;
 	struct tm *t_st = localtime(&timer);
@@ -140,7 +144,8 @@ void* fsr_test(void* arg){
 	fclose(fp_ad);
 }
 
-void* imu_test(void* arg){
+//void* imu_test(void* arg){
+void* mogura::imu_test(void* arg){
 
 	time_t timer;
 	struct tm *t_st = localtime(&timer);
@@ -156,7 +161,7 @@ void* imu_test(void* arg){
 	MPU9250 mog_mpu;
 	mog_mpu.initialize();
 	ref=mog_mpu.testConnection();
-	float data[9];
+	float im_data[9];
 
 	while(1){
 
@@ -168,49 +173,50 @@ void* imu_test(void* arg){
 		t_st = localtime(&timer);
 //		printf("fsr volt%f\n",volt_val);
 
-		data[0] = ax;
-		data[1] = ay;
-		data[2] = az;
-		data[3] = gx;
-		data[4] = gy;
-		data[5] = gz;
-		data[6] = (float)(t_st->tm_min);
-		data[7] = (float)(t_st->tm_sec);
-		data[8] = (float)nowTime.tv_usec;
+		im_data[0] = ax;
+		im_data[1] = ay;
+		im_data[2] = az;
+		im_data[3] = gx;
+		im_data[4] = gy;
+		im_data[5] = gz;
+		im_data[6] = (float)(t_st->tm_min);
+		im_data[7] = (float)(t_st->tm_sec);
+		im_data[8] = (float)nowTime.tv_usec;
 
 		//printf("%f,%f,%f,",ax,ay,az);
 		//printf("%f,%f,%f\n",gx,gy,gz);
 		//printf("%f,%f,%f\n",mx,my,mz);
 
 		fprintf(fp_imu,"%f,%f,%f,%f,%f,%f,%d,%d,%f\n",
-			data[0],data[1],data[2],data[3],data[4],data[5],
-			t_st->tm_min,t_st->tm_sec,data[8]);
+			im_data[0],im_data[1],im_data[2],im_data[3],im_data[4],im_data[5],
+			t_st->tm_min,t_st->tm_sec,im_data[8]);
 			//ax,ay,az,gx,gy,gz,mx,my,mz);
 	}
 	fclose(fp_imu);
 
 }
 
+
 int main(int argc, char const* argv[]){
+	mogura mogu;
+
+	gettimeofday(&stTime,NULL);
 
 	pthread_t thr_sv;
 	pthread_t thr_imu;
 	pthread_t thr_fsr;
 
-	gettimeofday(&stTime,NULL);
-
-	pthread_create(&thr_sv, NULL, servo_test,NULL);
-	pthread_create(&thr_imu, NULL, imu_test,NULL);
-	pthread_create(&thr_fsr, NULL, fsr_test,NULL);
-
-
+	pthread_create(&thr_sv, NULL, mogu.servo_test,NULL);
+	pthread_create(&thr_imu, NULL, mogu.imu_test,NULL);
+	pthread_create(&thr_fsr, NULL, mogu.fsr_test,NULL);
 
 	pthread_join(thr_sv,NULL);
-	//pthread_join(thr_ad,NULL);
 	pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
 
 	pthread_mutex_destroy(&mutex);
+
+
 }
 
 /*
