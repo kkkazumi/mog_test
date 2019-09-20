@@ -25,7 +25,7 @@ pthread_mutex_t mutex;
 
 void* servo_test(void* arg){
 	int ret;
-	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/simpletest.py");
+	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/random7.py");
 }
 
 void* photo_test(void* arg){
