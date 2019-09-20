@@ -1,3 +1,4 @@
+//http://bicycle.life.coocan.jp/takamints/index.php/doc/cplusplus/MovingAverage
 #include <deque>
 template<class InputType, class InnerAvgType=double,
     class AvgType=InputType>
