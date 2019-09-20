@@ -59,8 +59,20 @@ void* mog_1_down(void* arg){
 //void* servo_test(void* arg){
 void* mogura::servo_test(void* arg){
 	int ret;
-	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/random7.py");
+	int j;
+	//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/random7.py");
+	for(int i=0;i<10;i++){
+		ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_up.py");
+		for(int count=0;count<1000;count++){
+			j++;
+		}
+		ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_down.py");
+		for(int count=0;count<1000;count++){
+			j++;
+		}
+	}
 }
+
 
 //void* fsr_test(void* arg){
 void* mogura::fsr_test(void* arg){
@@ -99,6 +111,10 @@ void* mogura::fsr_test(void* arg){
 	fp_ad = fopen("ad_data_test.csv","w");
 	float data[11];
 
+	MovingAverage<float> intAverager(1000);
+	float average=0;
+	float before=0;
+
 	while(1){
 
 		volt_photo1= mog_photo.get_volt(out_ch0,ch0_data);
@@ -127,10 +143,19 @@ void* mogura::fsr_test(void* arg){
 		data[8] = (float)(t_st->tm_min);
 		data[9] = (float)(t_st->tm_sec);
 		data[10] = (float)nowTime.tv_usec;
+ 
+ 		before = average;
+		average = intAverager.update(data[0]);
+		if(average-before>0.0001){
+			printf("%f,%fHIT\n",average,before);
+		}else{
+			//printf("%f,%f--\n",average,before);
+		}
 
-		printf("%f,%f,%f,%f,%f,%f,%f,%f\n",
-			data[0],data[1],data[2],data[3],
-			data[4],data[5],data[6],data[7]);
+		//printf("%f,%f,%f,%f,%f,%f,%f,%f\n",
+		//	data[0],data[1],data[2],data[3],
+		//	data[4],data[5],data[6],data[7]);
+
 //		data[0] = volt_photo;
 //		data[1] = volt_fsr;
 		fprintf(fp_ad,"%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%f,\n",
