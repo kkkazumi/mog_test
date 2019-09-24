@@ -31,11 +31,14 @@ class mogura
 private:
 	float ad_data[8][2000];
 	float imu_data[6][500];
+	static int hitflg;
 
 public:
 	static void* servo_test(void* arg);
 	static void* fsr_test(void* arg);
 	static void* imu_test(void* arg);
+	static void* led(void* arg);
+	static void change_flg(int flg);
 };
 	
 //////test for detect and down
@@ -53,8 +56,16 @@ void* mog_1_down(void* arg){
 */
 
 //////////
+int mogura::hitflg=0;
 
-
+void mogura::change_flg(int flg){
+	if(mogura::hitflg==1){
+		mogura::hitflg=0;
+	}
+	else if(mogura::hitflg==0){
+		mogura::hitflg=1;
+	}
+}
 
 //void* servo_test(void* arg){
 void* mogura::servo_test(void* arg){
@@ -143,7 +154,9 @@ void* mogura::fsr_test(void* arg){
  		before = average;
 		average = intAverager.update(data[0]);
 		if(average-before>0.0001){
-			printf("%f,%fHIT\n",average,before);
+			//printf("%f,%fHIT\n",average,before);
+			printf("%d\n",hitflg);
+			change_flg(hitflg);
 		}else{
 			//printf("%f,%f--\n",average,before);
 		}
@@ -163,6 +176,18 @@ void* mogura::fsr_test(void* arg){
 			//data[0],data[1],data[2],data[3],data[4]);
 	}
 	fclose(fp_ad);
+}
+
+void* mogura::led(void* arg){
+	int ret;
+	while(1){
+		if(hitflg==1){
+			ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_on.py");
+			sleep(1);
+			change_flg(hitflg);
+			ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_off.py");
+		}
+	}
 }
 
 //void* imu_test(void* arg){
@@ -227,7 +252,7 @@ int main(int argc, char const* argv[]){
 	pthread_t thr_imu;
 	pthread_t thr_fsr;
 
-	pthread_create(&thr_sv, NULL, mogu.servo_test,NULL);
+	pthread_create(&thr_sv, NULL, mogu.led,NULL);
 	pthread_create(&thr_imu, NULL, mogu.imu_test,NULL);
 	pthread_create(&thr_fsr, NULL, mogu.fsr_test,NULL);
 
