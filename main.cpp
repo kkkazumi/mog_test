@@ -16,6 +16,13 @@
 
 //#define MOG_UP 80
 //#define MOG_DOWN 120
+#include <linux/i2c-dev.h>
+#include <math.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include "servo_c.h"
+
+
 
 #define PHOTO_THRE 0.4
 
@@ -38,7 +45,7 @@ public:
 	static void* fsr_test(void* arg);
 	static void* imu_test(void* arg);
 	static void* led(void* arg);
-	static void change_flg(int flg);
+	static void change_flg(int i_ad);
 };
 	
 //////////
@@ -129,7 +136,7 @@ void* mogura::fsr_test(void* arg){
 //		int	i_ad=0;
 			before[i_ad] = average[i_ad];
 			average[i_ad] = intAverager.update(data[i_ad]);
-			if(average[i_ad]-before[i_ad]>0.0001){
+			if(average[i_ad]-before[i_ad]>0.00022){
 				//printf("%f,%fHIT\n",average,before);
 				printf("%d\n",hitflg[i_ad]);
 				change_flg(i_ad);
@@ -152,13 +159,38 @@ void* mogura::fsr_test(void* arg){
 }
 
 void* mogura::led(void* arg){
+	int i2c;    // ファイルディスクリプタ
+	char *i2cFileName = "/dev/i2c-1"; // I2Cデバイスのパス（古いものはi2c-0）
+	int driverAddress = 0x40;
+
+	if ((i2c = open(i2cFileName, O_RDWR)) < 0)
+	{
+		printf("Faild to open i2c port\n");
+		exit(1);
+	}
+
+	if (ioctl(i2c, I2C_SLAVE, driverAddress) < 0)
+	{
+		printf("Unable to get bus access to talk to slave\n");
+		exit(1);
+	}
+
+	Ada_ServoDriver servo(i2c);
+	servo.reset();
+	servo.setPWMFreq(SERVO_CONTROL_FREQUENCY);
+ 
 	int ret;
 	while(1){
-		if(hitflg[0]==1){
-			ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_on.py");
-			usleep(50000);
-			change_flg(0);
-			ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_off.py");
+		for(int i_ad=0;i_ad<7;i_ad++){
+			if(hitflg[i_ad]==1){
+				servo.setServoPulse(i_ad+8,4096);
+				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_on.py");
+				//usleep(50000);
+				change_flg(i_ad);
+				servo.setServoPulse(i_ad+8,0);
+				//usleep(50000);
+				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_off.py");
+			}
 		}
 	}
 }
@@ -237,37 +269,3 @@ int main(int argc, char const* argv[]){
 
 
 }
-
-/*
-	while(1){
-		//photo
-	//	mog_photo.read_val(out_ch0,ch0_data,3);
-	//	volt_val = mog_photo.get_volt(out_ch0,ch0_data);
-		//time
-		now_timer = time(NULL);
-		dt = difftime(now_timer,st_timer);
-//		std::cout<<volt_val<<std::endl;
-
-		//
-		if(flg == S_DOWN){
-			if(dt > thre_time){
-				mogura.move(MOG_UP);
-				st_timer = time(NULL);
-				flg = S_UP;
-			}
-		}else if(flg == S_UP){
-			if(dt > thre_time){
-				mogura.move(MOG_DOWN);
-				st_timer = time(NULL);
-				flg = S_DOWN;
-			}
-			if(volt_val>PHOTO_THRE){
-				mogura.move(MOG_DOWN);
-				st_timer = time(NULL);
-				flg = S_DOWN;
-			}
-		}
-
-		before_volt=volt_val;
-	}
-		*/
