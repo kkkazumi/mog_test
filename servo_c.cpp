@@ -105,6 +105,7 @@ void Ada_ServoDriver::setServoPulse(uint8_t ch, double pulseWidth_us)
  pulselength /= 4096;
  // PWMのパルス設定値を算出。
  pulseWidth = pulseWidth_us / pulselength;
+ printf("%f\n",pulseWidth);
  
  // PWM値設定。
  //  setPWM(channel, on_timing, off_timing)

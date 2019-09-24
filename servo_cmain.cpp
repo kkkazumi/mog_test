@@ -21,7 +21,7 @@ int main(int argc, char **argv)
  
  //
  if ((i2c = open(i2cFileName, O_RDWR)) < 0)
- {
+{
   printf("Faild to open i2c port\n");
   exit(1);
  }
@@ -33,6 +33,7 @@ int main(int argc, char **argv)
   exit(1);
  }
  
+ printf("reset");
  Ada_ServoDriver servo(i2c);
  
  servo.reset();
@@ -50,32 +51,35 @@ int main(int argc, char **argv)
  
  
  sleep(1);
+ printf("slept\n");
  
  // とりあえず、適当に動かしてみる。
  //servo.setServoPulse(1, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
  
  while(true)
  {
+ 	printf("slept\n");
   
-  servo.setServoPulse(9, (SERVO_CENTER_PULSE_WIDTH_US + SERVO_RANGE_PULSE_WIDTH_US / 4));
+  servo.setServoPulse(9, 4096);
+	printf("off\n");
   //servo.setServoPulse(3, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
   
-  usleep(500000);
+  usleep(1000000);
   
   //servo.setServoPulse(1, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
   //servo.setServoPulse(2, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
   
-  usleep(500000);
   
-  servo.setServoPulse(9, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
+  //servo.setServoPulse(9, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
+  servo.setServoPulse(9, 0);
+	printf("on\n");
   //servo.setServoPulse(3, SERVO_CENTER_PULSE_WIDTH_US);
   
-  usleep(500000);
+  usleep(1000000);
   
   //servo.setServoPulse(1, SERVO_CENTER_PULSE_WIDTH_US);
   //servo.setServoPulse(2, (SERVO_CENTER_PULSE_WIDTH_US + SERVO_RANGE_PULSE_WIDTH_US / 4));
   
-  usleep(500000);
  }
  
  return 0;
