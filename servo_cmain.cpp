@@ -43,37 +43,37 @@ int main(int argc, char **argv)
  servo.setPWMFreq(SERVO_CONTROL_FREQUENCY);
  
  // サーボをセンタ位置へ。
- servo.setServoPulse(0, SERVO_CENTER_PULSE_WIDTH_US);
- servo.setServoPulse(1, SERVO_CENTER_PULSE_WIDTH_US);
- servo.setServoPulse(2, SERVO_CENTER_PULSE_WIDTH_US);
- servo.setServoPulse(3, SERVO_CENTER_PULSE_WIDTH_US);
+ servo.setServoPulse(9, SERVO_CENTER_PULSE_WIDTH_US);
+ //servo.setServoPulse(1, SERVO_CENTER_PULSE_WIDTH_US);
+ //servo.setServoPulse(2, SERVO_CENTER_PULSE_WIDTH_US);
+ //servo.setServoPulse(3, SERVO_CENTER_PULSE_WIDTH_US);
  
  
  sleep(1);
  
  // とりあえず、適当に動かしてみる。
- servo.setServoPulse(1, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
+ //servo.setServoPulse(1, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
  
  while(true)
  {
   
-  servo.setServoPulse(0, (SERVO_CENTER_PULSE_WIDTH_US + SERVO_RANGE_PULSE_WIDTH_US / 4));
-  servo.setServoPulse(3, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
+  servo.setServoPulse(9, (SERVO_CENTER_PULSE_WIDTH_US + SERVO_RANGE_PULSE_WIDTH_US / 4));
+  //servo.setServoPulse(3, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
   
   usleep(500000);
   
-  servo.setServoPulse(1, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
-  servo.setServoPulse(2, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
+  //servo.setServoPulse(1, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
+  //servo.setServoPulse(2, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
   
   usleep(500000);
   
-  servo.setServoPulse(0, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
-  servo.setServoPulse(3, SERVO_CENTER_PULSE_WIDTH_US);
+  servo.setServoPulse(9, (SERVO_CENTER_PULSE_WIDTH_US - SERVO_RANGE_PULSE_WIDTH_US / 4));
+  //servo.setServoPulse(3, SERVO_CENTER_PULSE_WIDTH_US);
   
   usleep(500000);
   
-  servo.setServoPulse(1, SERVO_CENTER_PULSE_WIDTH_US);
-  servo.setServoPulse(2, (SERVO_CENTER_PULSE_WIDTH_US + SERVO_RANGE_PULSE_WIDTH_US / 4));
+  //servo.setServoPulse(1, SERVO_CENTER_PULSE_WIDTH_US);
+  //servo.setServoPulse(2, (SERVO_CENTER_PULSE_WIDTH_US + SERVO_RANGE_PULSE_WIDTH_US / 4));
   
   usleep(500000);
  }
