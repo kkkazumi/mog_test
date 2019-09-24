@@ -63,13 +63,9 @@ void* mogura::servo_test(void* arg){
 	//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/random7.py");
 	for(int i=0;i<10;i++){
 		ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_up.py");
-		for(int count=0;count<1000;count++){
-			j++;
-		}
+		sleep(1);
 		ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_down.py");
-		for(int count=0;count<1000;count++){
-			j++;
-		}
+		sleep(1);
 	}
 }
 
