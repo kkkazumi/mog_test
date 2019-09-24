@@ -31,7 +31,7 @@ class mogura
 private:
 	float ad_data[8][2000];
 	float imu_data[6][500];
-	static int hitflg;
+	static int hitflg[7];
 
 public:
 	static void* servo_test(void* arg);
@@ -41,29 +41,15 @@ public:
 	static void change_flg(int flg);
 };
 	
-//////test for detect and down
-
-/*
-void* mog_1_up(void* arg){
-	int ret;
-	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_up.py");
-}
-
-void* mog_1_down(void* arg){
-	int ret;
-	ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_down.py");
-}
-*/
-
 //////////
-int mogura::hitflg=0;
+int mogura::hitflg[7]={0};
 
-void mogura::change_flg(int flg){
-	if(mogura::hitflg==1){
-		mogura::hitflg=0;
+void mogura::change_flg(int i_ad){
+	if(mogura::hitflg[i_ad]==1){
+		mogura::hitflg[i_ad]=0;
 	}
-	else if(mogura::hitflg==0){
-		mogura::hitflg=1;
+	else if(mogura::hitflg[i_ad]==0){
+		mogura::hitflg[i_ad]=1;
 	}
 }
 
@@ -79,7 +65,6 @@ void* mogura::servo_test(void* arg){
 		sleep(1);
 	}
 }
-
 
 //void* fsr_test(void* arg){
 void* mogura::fsr_test(void* arg){
@@ -103,13 +88,13 @@ void* mogura::fsr_test(void* arg){
 	char ch5_data[] = { 0x00, 0x00, 0x00 };
 	char ch6_data[] = { 0x00, 0x00, 0x00 };
 	char ch7_data[] = { 0x00, 0x00, 0x00 };
-	float volt_photo1;
-	float volt_photo2;
-	float volt_photo3;
-	float volt_photo4;
-	float volt_photo5;
-	float volt_photo6;
-	float volt_photo7;
+	float volt_photo[7];
+	//float volt_photo2;
+	//float volt_photo3;
+	//float volt_photo4;
+	//float volt_photo5;
+	//float volt_photo6;
+	//float volt_photo7;
 	float volt_fsr;
 	mog_adc mog_photo;
 	mog_photo.set_adc();
@@ -119,18 +104,18 @@ void* mogura::fsr_test(void* arg){
 	float data[11];
 
 	MovingAverage<float> intAverager(1000);
-	float average=0;
-	float before=0;
+	float average[7]={0};
+	float before[7]={0};
 
 	while(1){
 
-		volt_photo1= mog_photo.get_volt(out_ch0,ch0_data);
-		volt_photo2= mog_photo.get_volt(out_ch1,ch1_data);
-		volt_photo3= mog_photo.get_volt(out_ch2,ch2_data);
-		volt_photo4= mog_photo.get_volt(out_ch3,ch3_data);
-		volt_photo5= mog_photo.get_volt(out_ch4,ch4_data);
-		volt_photo6= mog_photo.get_volt(out_ch5,ch5_data);
-		volt_photo7= mog_photo.get_volt(out_ch6,ch6_data);
+		volt_photo[0]= mog_photo.get_volt(out_ch0,ch0_data);
+		volt_photo[1]= mog_photo.get_volt(out_ch1,ch1_data);
+		volt_photo[2]= mog_photo.get_volt(out_ch2,ch2_data);
+		volt_photo[3]= mog_photo.get_volt(out_ch3,ch3_data);
+		volt_photo[4]= mog_photo.get_volt(out_ch4,ch4_data);
+		volt_photo[5]= mog_photo.get_volt(out_ch5,ch5_data);
+		volt_photo[6]= mog_photo.get_volt(out_ch6,ch6_data);
 		volt_fsr= mog_photo.get_volt(out_ch7,ch7_data);
 
 		struct timeval nowTime;
@@ -139,34 +124,22 @@ void* mogura::fsr_test(void* arg){
 		t_st = localtime(&timer);
 //		printf("fsr volt%f\n",volt_val);
 
-		data[0] = volt_photo1;
-		data[1] = volt_photo2;
-		data[2] = volt_photo3;
-		data[3] = volt_photo4;
-		data[4] = volt_photo5;
-		data[5] = volt_photo6;
-		data[6] = volt_photo7;
+		for(int i_ad=0;i_ad<7;i_ad++){
+			data[i_ad] = volt_photo[i_ad];
+//		int	i_ad=0;
+			before[i_ad] = average[i_ad];
+			average[i_ad] = intAverager.update(data[i_ad]);
+			if(average[i_ad]-before[i_ad]>0.0001){
+				//printf("%f,%fHIT\n",average,before);
+				printf("%d\n",hitflg[i_ad]);
+				change_flg(i_ad);
+			}
+		}
 		data[7] = volt_fsr;
 		data[8] = (float)(t_st->tm_min);
 		data[9] = (float)(t_st->tm_sec);
 		data[10] = (float)nowTime.tv_usec;
  
- 		before = average;
-		average = intAverager.update(data[0]);
-		if(average-before>0.0001){
-			//printf("%f,%fHIT\n",average,before);
-			printf("%d\n",hitflg);
-			change_flg(hitflg);
-		}else{
-			//printf("%f,%f--\n",average,before);
-		}
-
-		//printf("%f,%f,%f,%f,%f,%f,%f,%f\n",
-		//	data[0],data[1],data[2],data[3],
-		//	data[4],data[5],data[6],data[7]);
-
-//		data[0] = volt_photo;
-//		data[1] = volt_fsr;
 		fprintf(fp_ad,"%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%f,\n",
 			data[0],data[1],
 			data[2],data[3],
@@ -181,10 +154,10 @@ void* mogura::fsr_test(void* arg){
 void* mogura::led(void* arg){
 	int ret;
 	while(1){
-		if(hitflg==1){
+		if(hitflg[0]==1){
 			ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_on.py");
-			sleep(1);
-			change_flg(hitflg);
+			usleep(50000);
+			change_flg(0);
 			ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_off.py");
 		}
 	}
