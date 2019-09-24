@@ -9,6 +9,10 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
+#include <unistd.h>
+
+#include "servo_c.h"
+
 int main(int argc, char **argv)
 {
  int i2c;    // ファイルディスクリプタ
