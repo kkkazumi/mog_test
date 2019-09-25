@@ -47,13 +47,15 @@ int main(int argc, char **argv)
  {
  	printf("slept\n");
   
+  servo.setServoPulse(0, 2300);
   servo.setServoPulse(9, 4096);
   
-  usleep(1000000);
+  sleep(1);
   
+  servo.setServoPulse(0, 1500);
   servo.setServoPulse(9, 0);
   
-  usleep(1000000);
+  sleep(2);
   
  }
  
