@@ -26,8 +26,8 @@
 
 #define PHOTO_THRE 0.4
 
-#define S_UP 1
-#define S_DOWN 0
+#define S_UP 2300
+#define S_DOWN 1500
 
 struct timeval stTime;
 pthread_mutex_t mutex;
@@ -62,17 +62,39 @@ void mogura::change_flg(int i_ad){
 
 //void* servo_test(void* arg){
 void* mogura::servo_test(void* arg){
-	int ret;
-	int j;
-	//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/random7.py");
-	for(int i=0;i<10;i++){
-		ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_up.py");
-		sleep(1);
-		ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/m1_down.py");
-		sleep(1);
+	int i2c;    // ファイルディスクリプタ
+	char *i2cFileName = "/dev/i2c-1"; // I2Cデバイスのパス（古いものはi2c-0）
+	int driverAddress = 0x40;
+
+	if ((i2c = open(i2cFileName, O_RDWR)) < 0)
+	{
+		printf("Faild to open i2c port\n");
+		exit(1);
+	}
+
+	if (ioctl(i2c, I2C_SLAVE, driverAddress) < 0)
+	{
+		printf("Unable to get bus access to talk to slave\n");
+		exit(1);
+	}
+
+	Ada_ServoDriver servo(i2c);
+	servo.reset();
+	servo.setPWMFreq(SERVO_CONTROL_FREQUENCY);
+ 
+	while(1){
+		for(int servo_id=0;servo_id<7;servo_id++){
+			servo.setServoPulse(servo_id,S_UP);
+			sleep(1);
+				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_on.py");
+				//usleep(50000);
+			servo.setServoPulse(servo_id,S_DOWN);
+			sleep(1);
+				//usleep(50000);
+				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_off.py");
+		}
 	}
 }
-
 //void* fsr_test(void* arg){
 void* mogura::fsr_test(void* arg){
 
@@ -263,14 +285,17 @@ int main(int argc, char const* argv[]){
 	gettimeofday(&stTime,NULL);
 
 	pthread_t thr_sv;
+	pthread_t thr_led;
 	pthread_t thr_imu;
 	pthread_t thr_fsr;
 
-	pthread_create(&thr_sv, NULL, mogu.led,NULL);
+	pthread_create(&thr_sv, NULL, mogu.servo_test,NULL);
+	pthread_create(&thr_led, NULL, mogu.led,NULL);
 	pthread_create(&thr_imu, NULL, mogu.imu_test,NULL);
 	pthread_create(&thr_fsr, NULL, mogu.fsr_test,NULL);
 
 	pthread_join(thr_sv,NULL);
+	pthread_join(thr_led,NULL);
 	pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
 
