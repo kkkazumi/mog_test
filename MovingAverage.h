@@ -3,10 +3,10 @@
 template<class InputType, class InnerAvgType=double,
     class AvgType=InputType>
 class MovingAverage {
-    int average_count;
     std::deque<InputType> buffer;
     InnerAvgType average;
 public:
+    int average_count;
     MovingAverage() : average_count(1), average(0) { }
     MovingAverage(int average_count)
         : average_count(average_count), average(0)
