@@ -52,11 +52,11 @@ public:
 int mogura::hitflg[7]={0};
 
 void mogura::change_flg(int i_ad){
-	if(mogura::hitflg[i_ad]==1){
-		mogura::hitflg[i_ad]=0;
+	if(hitflg[i_ad]==1){
+		hitflg[i_ad]=0;
 	}
-	else if(mogura::hitflg[i_ad]==0){
-		mogura::hitflg[i_ad]=1;
+	else if(hitflg[i_ad]==0){
+		hitflg[i_ad]=1;
 	}
 }
 
@@ -95,14 +95,10 @@ void* mogura::fsr_test(void* arg){
 	char ch5_data[] = { 0x00, 0x00, 0x00 };
 	char ch6_data[] = { 0x00, 0x00, 0x00 };
 	char ch7_data[] = { 0x00, 0x00, 0x00 };
+
 	float volt_photo[7];
-	//float volt_photo2;
-	//float volt_photo3;
-	//float volt_photo4;
-	//float volt_photo5;
-	//float volt_photo6;
-	//float volt_photo7;
 	float volt_fsr;
+
 	mog_adc mog_photo;
 	mog_photo.set_adc();
 
@@ -110,9 +106,19 @@ void* mogura::fsr_test(void* arg){
 	fp_ad = fopen("ad_data_test.csv","w");
 	float data[11];
 
-	MovingAverage<float> intAverager(1000);
+	//MovingAverage<float> intAverager(1000);
+	MovingAverage<float> intAverager[7];
+	MovingAverage<float> intAve2[7];
+	for(int c_ave=0;c_ave<7;c_ave++){
+		intAverager[c_ave].average_count=1000;
+		intAve2[c_ave].average_count=1000;
+	}
+
 	float average[7]={0};
 	float before[7]={0};
+
+	float ave2[7]={0};
+	float bef2[7]={0};
 
 	while(1){
 
@@ -135,13 +141,16 @@ void* mogura::fsr_test(void* arg){
 			data[i_ad] = volt_photo[i_ad];
 //		int	i_ad=0;
 			before[i_ad] = average[i_ad];
-			average[i_ad] = intAverager.update(data[i_ad]);
-			if(average[i_ad]-before[i_ad]>0.00022){
+			bef2[i_ad] = ave2[i_ad];
+			average[i_ad] = intAverager[i_ad].update(data[i_ad]);
+			ave2[i_ad] = intAve2[i_ad].update(average[i_ad]);
+			if(ave2[i_ad]-bef2[i_ad]>0.00002){
+			//if(average[i_ad]-before[i_ad]>0.00022){
 				//printf("%f,%fHIT\n",average,before);
-				printf("%d\n",hitflg[i_ad]);
 				change_flg(i_ad);
 			}
 		}
+
 		data[7] = volt_fsr;
 		data[8] = (float)(t_st->tm_min);
 		data[9] = (float)(t_st->tm_sec);
