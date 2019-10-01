@@ -100,6 +100,21 @@ void* mogura::fsr_test(void* arg){
 
 	time_t timer;
 	struct tm *t_st = localtime(&timer);
+	char filename[100];
+
+	struct timeval nowTime;
+	gettimeofday(&nowTime,NULL);
+	time(&timer);
+	t_st = localtime(&timer);
+	sprintf(filename,"ad_data_%d%d%d-%d%d%d.csv",
+	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
+//		printf("fsr volt%f\n",volt_val);
+
+	FILE *fp_ad;
+	fp_ad = fopen(filename,"w");
+	float data[11];
+
+
 
 	char out_ch0[] = { 0b00000110, 0b00000000, 0b00000000 };
 	char out_ch1[] = { 0b00000110, 0b01000000, 0b00000000 };
@@ -123,10 +138,6 @@ void* mogura::fsr_test(void* arg){
 
 	mog_adc mog_photo;
 	mog_photo.set_adc();
-
-	FILE *fp_ad;
-	fp_ad = fopen("ad_data_test.csv","w");
-	float data[11];
 
 	//MovingAverage<float> intAverager(1000);
 	MovingAverage<float> intAverager[7];
