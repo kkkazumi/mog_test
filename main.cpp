@@ -54,9 +54,9 @@ int mogura::hitflg[7]={0};
 void mogura::change_flg(int i_ad){
 	if(hitflg[i_ad]==1){
 		hitflg[i_ad]=0;
-	}
-	else if(hitflg[i_ad]==0){
+	}else if(hitflg[i_ad]==0){
 		hitflg[i_ad]=1;
+	}else if(hitflg[i_ad]==2){
 	}
 }
 
@@ -64,6 +64,7 @@ void mogura::change_flg(int i_ad){
 void* mogura::servo_test(void* arg){
 	int i2c;    // ファイルディスクリプタ
 	char *i2cFileName = "/dev/i2c-1"; // I2Cデバイスのパス（古いものはi2c-0）
+
 	int driverAddress = 0x40;
 
 	if ((i2c = open(i2cFileName, O_RDWR)) < 0)
@@ -81,18 +82,32 @@ void* mogura::servo_test(void* arg){
 	Ada_ServoDriver servo(i2c);
 	servo.reset();
 	servo.setPWMFreq(SERVO_CONTROL_FREQUENCY);
- 
+ 	int ran_array[7]={0};
+ 	int slp=0;
 	while(1){
-		for(int servo_id=0;servo_id<7;servo_id++){
-			servo.setServoPulse(servo_id,S_UP);
-			sleep(1);
-				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_on.py");
-				//usleep(50000);
-			servo.setServoPulse(servo_id,S_DOWN);
-			sleep(1);
-				//usleep(50000);
-				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_off.py");
+		pthread_mutex_lock(&mutex);
+		std::srand(time(NULL));
+		slp=rand()%3;
+		for(int id=0;id<7;id++){
+			ran_array[id]=rand()%3;
 		}
+		for(int servo_id=0;servo_id<7;servo_id++){
+			if(ran_array[servo_id]==1){
+				servo.setServoPulse(servo_id,S_UP);
+			}else{
+				hitflg[servo_id]=2;
+				servo.setServoPulse(servo_id,S_DOWN);
+				//sleep(1);
+			}
+		}
+		//sleep(1);
+		usleep((slp+1)*200000);
+		//usleep((slp+1)*500000);
+		pthread_mutex_unlock(&mutex);
+		for(int id=0;id<7;id++){
+			hitflg[id]=0;
+		}
+		//usleep((slp+1)*30000);
 	}
 }
 //void* fsr_test(void* arg){
@@ -229,6 +244,7 @@ void* mogura::led(void* arg){
 				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_on.py");
 				//usleep(50000);
 				change_flg(i_ad);
+				ret = system("aplay strike1.wav");
 				servo.setServoPulse(i_ad+8,0);
 				//usleep(50000);
 				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_off.py");
