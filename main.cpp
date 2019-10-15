@@ -84,14 +84,38 @@ void* mogura::servo_test(void* arg){
 	servo.setPWMFreq(SERVO_CONTROL_FREQUENCY);
  	int ran_array[7]={0};
  	int slp=0;
+	int servo_id=0;
+
+
+	struct timeval nowTime;
+	time_t timer;
+	struct tm *t_st = localtime(&timer);
+
+		int t;
+		int test_t;
+
+
 	while(1){
-		pthread_mutex_lock(&mutex);
+//		pthread_mutex_lock(&mutex);
+
+	gettimeofday(&nowTime,NULL);
+	time(&timer);
+	t_st = localtime(&timer);
+	printf("time,%d,%d,%d\n",
+	(int)t_st->tm_min,(int)t_st->tm_sec,
+	(int)nowTime.tv_usec);
+//		printf("fsr volt%f\n",volt_val);
+
+
 		std::srand(time(NULL));
 		slp=rand()%3;
-		for(int id=0;id<7;id++){
-			ran_array[id]=rand()%3;
-		}
+
+		test_t++;
+		t=test_t%2;
+
 		for(int servo_id=0;servo_id<7;servo_id++){
+			ran_array[servo_id]=rand()%2;
+			//ran_array[servo_id]=t;
 			if(ran_array[servo_id]==1){
 				servo.setServoPulse(servo_id,S_UP);
 			}else{
@@ -100,10 +124,11 @@ void* mogura::servo_test(void* arg){
 				//sleep(1);
 			}
 		}
+
 		//sleep(1);
-		usleep((slp+1)*200000);
+		usleep((slp+1)*100000);
 		//usleep((slp+1)*500000);
-		pthread_mutex_unlock(&mutex);
+//		pthread_mutex_unlock(&mutex);
 		for(int id=0;id<7;id++){
 			hitflg[id]=0;
 		}
@@ -258,14 +283,23 @@ void* mogura::imu_test(void* arg){
 
 	time_t timer;
 	struct tm *t_st = localtime(&timer);
+	char filename[100];
+
+	struct timeval nowTime;
+	gettimeofday(&nowTime,NULL);
+	time(&timer);
+	t_st = localtime(&timer);
+	sprintf(filename,"imu_data_%d%d%d-%d%d%d.csv",
+	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
+//		printf("fsr volt%f\n",volt_val);
+
+	FILE *fp_imu;
+	fp_imu = fopen(filename,"w");
 
 	float ax,ay,az;
 	float gx,gy,gz;
 	float mx,my,mz;
 	int ref;
-
-	FILE *fp_imu;
-	fp_imu = fopen("imu_data_test.csv","w");
 
 	MPU9250 mog_mpu;
 	mog_mpu.initialize();
