@@ -39,7 +39,7 @@ int main(int arc, char **argv)
 
 			//get ad val
 			mog_photo.read_val(out_ch0,ch0_data,3);
-			val = mog_photo.get_volt(out_ch0,ch0_data);
+			val = mog_photo.get_volt(out_ch1,ch1_data);
 
 			std::cout << realsec << ",\t" << val << std::endl;
   }

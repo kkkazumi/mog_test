@@ -66,7 +66,7 @@ void MPU9250::ReadRegs( uint8_t ReadAddr, uint8_t *ReadBuf, unsigned int Bytes )
     for(i=0; i<Bytes; i++)
     	ReadBuf[i] = rx[i + 1];
 
-    usleep(50);
+    usleep(5);
 }
 
 /*-----------------------------------------------------------------------------------------------

@@ -11,11 +11,11 @@ LDFLAGS = -L$(PATH_LIB) -L. -lbcm2835 -lwiringPi -lpthread
 CFLAGS = -I$(PATH_INC) -I.
 
 PROGRAM=$(addsuffix .cpp, $(TARGET))
-OBJS = adcread.o servo.o mpu9250.o
+OBJS = adcread.o servo_c.o mpu9250.o
 
 #$(TARGET): $(PROGRAM)
 $(TARGET): $(OBJS)
-	$(CC) -o $(TARGET) $(OBJS) $(PROGRAM) $(CFLAGS) $(LDFLAGS)
+	$(CC) -std=c++11 -o $(TARGET) $(OBJS) $(PROGRAM) $(CFLAGS) $(LDFLAGS)
 
 clean:
 	rm $(TARGET)
