@@ -101,9 +101,9 @@ void* mogura::servo_test(void* arg){
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
 	t_st = localtime(&timer);
-	printf("time,%d,%d,%d\n",
-	(int)t_st->tm_min,(int)t_st->tm_sec,
-	(int)nowTime.tv_usec);
+	//printf("time,%d,%d,%d\n",
+	//(int)t_st->tm_min,(int)t_st->tm_sec,
+	//(int)nowTime.tv_usec);
 //		printf("fsr volt%f\n",volt_val);
 
 
@@ -143,6 +143,7 @@ void* mogura::fsr_test(void* arg){
 	char filename[100];
 
 	struct timeval nowTime;
+
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
 	t_st = localtime(&timer);
@@ -153,8 +154,6 @@ void* mogura::fsr_test(void* arg){
 	FILE *fp_ad;
 	fp_ad = fopen(filename,"w");
 	float data[11];
-
-
 
 	char out_ch0[] = { 0b00000110, 0b00000000, 0b00000000 };
 	char out_ch1[] = { 0b00000110, 0b01000000, 0b00000000 };
@@ -182,16 +181,18 @@ void* mogura::fsr_test(void* arg){
 	//MovingAverage<float> intAverager(1000);
 	MovingAverage<float> intAverager[7];
 	MovingAverage<float> intAve2[7];
+	MovingAverage<float> fsAve;
+	fsAve.average_count = 7;
 	for(int c_ave=0;c_ave<7;c_ave++){
 		intAverager[c_ave].average_count=1000;
 		intAve2[c_ave].average_count=1000;
 	}
 
-	float average[7]={0};
-	float before[7]={0};
+	float average[8]={0};
+	float before[8]={0};
 
-	float ave2[7]={0};
-	float bef2[7]={0};
+	float ave2[8]={0};
+	float bef2[8]={0};
 
 	while(1){
 
@@ -224,7 +225,25 @@ void* mogura::fsr_test(void* arg){
 			}
 		}
 
+		before[7] = data[7];
 		data[7] = volt_fsr;
+		bef2[7] = ave2[7];
+		average[7] = fsAve.update(data[7]);
+		ave2[7] = fsAve.update(average[7]);
+//		printf("fsr, %f\n",ave2[7]-bef2[7]);
+		if(ave2[7]-bef2[7]>0.5){
+			
+			printf("===========================hit\n");
+			/*
+			gettimeofday(&nowTime,NULL);
+			time(&timer);
+			t_st = localtime(&timer);
+			sprintf(filename,"/mnt/mogura/ad_data_%d%d%d-%d%d%d.csv",
+			1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
+			*/
+
+		}
+
 		data[8] = (float)(t_st->tm_min);
 		data[9] = (float)(t_st->tm_sec);
 		data[10] = (float)nowTime.tv_usec;
