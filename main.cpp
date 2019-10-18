@@ -146,7 +146,7 @@ void* mogura::fsr_test(void* arg){
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
 	t_st = localtime(&timer);
-	sprintf(filename,"ad_data_%d%d%d-%d%d%d.csv",
+	sprintf(filename,"/mnt/mogura/ad_data_%d%d%d-%d%d%d.csv",
 	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
 //		printf("fsr volt%f\n",volt_val);
 
@@ -289,7 +289,7 @@ void* mogura::imu_test(void* arg){
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
 	t_st = localtime(&timer);
-	sprintf(filename,"imu_data_%d%d%d-%d%d%d.csv",
+	sprintf(filename,"/mnt/mogura/imu_data_%d%d%d-%d%d%d.csv",
 	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
 //		printf("fsr volt%f\n",volt_val);
 
