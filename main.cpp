@@ -7,16 +7,9 @@
 #include <unistd.h>
 
 #include <pthread.h>
-#include <mutex>
-#include <string.h>
 
 #include "adcread.h"
 #include "MPU9250.h"
-#define ABUF_SIZE (5)
-#define IBUF_SIZE (9) 
-#define SET (100) 
-#define ALOGBUFSIZE (ABUF_SIZE * SET)
-#define ILOGBUFSIZE (IBUF_SIZE * SET)
 
 #include <assert.h>
 #include "MovingAverage.h"
@@ -29,6 +22,10 @@
 #include <sys/ioctl.h>
 #include "servo_c.h"
 
+//#include <direct.h>
+#include <sys/stat.h>
+
+#include <string.h>
 
 
 #define PHOTO_THRE 0.4
@@ -39,23 +36,53 @@
 struct timeval stTime;
 pthread_mutex_t mutex;
 
+
 class mogura
 {
 private:
 	float ad_data[8][2000];
 	float imu_data[6][500];
 	static int hitflg[7];
+	static time_t start_time;
+	static char dirname[50];
 
 public:
 	static void* servo_test(void* arg);
 	static void* fsr_test(void* arg);
 	static void* imu_test(void* arg);
 	static void* led(void* arg);
+	static void setdir();
 	static void change_flg(int i_ad);
 };
+
+
 	
 //////////
 int mogura::hitflg[7]={0};
+time_t mogura::start_time;
+char mogura::dirname[50] = {0};
+
+void mogura::setdir(){
+	
+	struct timeval nowTime;
+	time_t timer;
+	struct tm *t_st = localtime(&timer);
+
+	//printf("%s\n",dirname);
+	gettimeofday(&nowTime,NULL);
+	time(&timer);
+	t_st = localtime(&timer);
+	sprintf(dirname,"/mnt/mogura/%d%d%d-%d%d%d/",
+	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
+	mkdir(dirname,S_IRUSR|S_IWUSR|S_IXUSR|
+								S_IRGRP|S_IWGRP|S_IXGRP|
+								S_IROTH|S_IWOTH|S_IXOTH);
+	chmod(dirname,0777);
+//		printf("fsr volt%f\n",volt_val);
+	start_time = timer;
+	printf("dirset\n");
+
+}
 
 void mogura::change_flg(int i_ad){
 	if(hitflg[i_ad]==1){
@@ -153,7 +180,7 @@ void* mogura::fsr_test(void* arg){
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
 	t_st = localtime(&timer);
-	sprintf(filename,"/mnt/mogura/ad_data_%d%d%d-%d%d%d.csv",
+	sprintf(filename,"%s/ad_data_%d%d%d-%d%d%d.csv",dirname,
 	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
 //		printf("fsr volt%f\n",volt_val);
 
@@ -182,7 +209,6 @@ void* mogura::fsr_test(void* arg){
 	float volt_fsr;
 
 	mog_adc mog_photo;
-
 	mog_photo.set_adc();
 
 	//MovingAverage<float> intAverager(1000);
@@ -217,102 +243,53 @@ void* mogura::fsr_test(void* arg){
 		time(&timer);
 		t_st = localtime(&timer);
 //		printf("fsr volt%f\n",volt_val);
-	//fclose(fp_ad);
-	//	fprintf(fp_ad,"%f,%f,%f\n",realsec,volt_photo,volt_fsr);
 
-void *save_log(void* arg)
-{
-	printf("in save");
-	int i;
-	int fdf_a,fdf_i;
-
-	char afile[50],ifile[50];
-	sprintf(afile,"log_data/ad_log_test.dat");
-	sprintf(ifile,"log_data/imu_log_test.dat");
-
-	if((fdf_a=open(afile,O_WRONLY|O_CREAT|O_TRUNC, 0755))==-1){
-		perror("cantopen\n");
-		exit(EXIT_FAILURE);
-	}
-
-	for(int i_ad=0;i_ad<7;i_ad++){
-		data[i_ad] = volt_photo[i_ad];
+		for(int i_ad=0;i_ad<7;i_ad++){
+			data[i_ad] = volt_photo[i_ad];
 //		int	i_ad=0;
-		before[i_ad] = average[i_ad];
-		bef2[i_ad] = ave2[i_ad];
-		average[i_ad] = intAverager[i_ad].update(data[i_ad]);
-		ave2[i_ad] = intAve2[i_ad].update(average[i_ad]);
-		if(ave2[i_ad]-bef2[i_ad]>0.00002){
-		//if(average[i_ad]-before[i_ad]>0.00022){
-			//printf("%f,%fHIT\n",average,before);
-			change_flg(i_ad);
+			before[i_ad] = average[i_ad];
+			bef2[i_ad] = ave2[i_ad];
+			average[i_ad] = intAverager[i_ad].update(data[i_ad]);
+			ave2[i_ad] = intAve2[i_ad].update(average[i_ad]);
+			if(ave2[i_ad]-bef2[i_ad]>0.00002){
+			//if(average[i_ad]-before[i_ad]>0.00022){
+				//printf("%f,%fHIT\n",average,before);
+				change_flg(i_ad);
+			}
 		}
-	}
 
-	before[7] = data[7];
-	data[7] = volt_fsr;
-	bef2[7] = ave2[7];
-	average[7] = fsAve.update(data[7]);
-	ave2[7] = fsAve.update(average[7]);
+		before[7] = data[7];
+		data[7] = volt_fsr;
+		bef2[7] = ave2[7];
+		average[7] = fsAve.update(data[7]);
+		ave2[7] = fsAve.update(average[7]);
 //		printf("fsr, %f\n",ave2[7]-bef2[7]);
-	if(ave2[7]-bef2[7]>0.5){
-		
-		printf("===========================hit\n");
-		/*
-		gettimeofday(&nowTime,NULL);
-		time(&timer);
-		t_st = localtime(&timer);
-		sprintf(filename,"/mnt/mogura/ad_data_%d%d%d-%d%d%d.csv",
-		1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
-		*/
+		if(ave2[7]-bef2[7]>0.5){
+			
+			fclose(fp_ad);
+			printf("===========================attack\n");
+			gettimeofday(&nowTime,NULL);
+			time(&timer);
+			t_st = localtime(&timer);
+			sprintf(filename,"%s/ad_data_%d%d%d-%d%d%d.csv",dirname,
+			1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
 
-	}
-
-	data[8] = (float)(t_st->tm_min);
-	data[9] = (float)(t_st->tm_sec);
-	data[10] = (float)nowTime.tv_usec;
-
-	fprintf(fp_ad,"%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%f,\n",
-		data[0],data[1],
-		data[2],data[3],
-		data[4],data[5],
-		data[6],data[7],
-		(int)t_st->tm_min,(int)t_st->tm_sec,data[10]);
-		//data[0],data[1],data[2],data[3],data[4]);
-	}
-
-	while(1){
-		if(ra_count == 0){
-			//pthread_mutex_lock(&lock);
-			std::lock_guard<std::mutex> lock(mtx);
-			rp_a = adBuf;
-			//pthread_mutex_unlock(&lock);
-		}
-		if(ri_count == 0){
-			std::lock_guard<std::mutex> lock(mtx);
-			//pthread_mutex_lock(&lock);
-			rp_i = imBuf;
-			//pthread_mutex_unlock(&lock);
+			fp_ad = fopen(filename,"w");
 		}
 
-		//pthread_mutex_lock(&lock);
-		std::lock_guard<std::mutex> lock(mtx);
-		write(fdf_a,rp_a,sizeof(float)*ABUF_SIZE);
-		write(fdf_i,rp_i,sizeof(float)*IBUF_SIZE);
-
-		rp_a+=ABUF_SIZE;
-		rp_i+=IBUF_SIZE;
-
-		ra_count++;
-		ri_count++;
-
-		if(ra_count == SET) ra_count = 0;
-		if(ri_count == SET) ri_count = 0;
+		data[8] = (float)(t_st->tm_min);
+		data[9] = (float)(t_st->tm_sec);
+		data[10] = (float)nowTime.tv_usec;
+ 
+		fprintf(fp_ad,"%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%f,\n",
+			data[0],data[1],
+			data[2],data[3],
+			data[4],data[5],
+			data[6],data[7],
+			(int)t_st->tm_min,(int)t_st->tm_sec,data[10]);
+			//data[0],data[1],data[2],data[3],data[4]);
 	}
-	//pthread_mutex_unlock(&lock);
-
-	close(fdf_a);
-	close(fdf_i);
+	fclose(fp_ad);
 }
 
 void* mogura::led(void* arg){
@@ -364,7 +341,7 @@ void* mogura::imu_test(void* arg){
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
 	t_st = localtime(&timer);
-	sprintf(filename,"/mnt/mogura/imu_data_%d%d%d-%d%d%d.csv",
+	sprintf(filename,"%s/imu_data_%d%d%d-%d%d%d.csv",dirname,
 	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
 //		printf("fsr volt%f\n",volt_val);
 
@@ -379,32 +356,11 @@ void* mogura::imu_test(void* arg){
 	MPU9250 mog_mpu;
 	mog_mpu.initialize();
 	ref=mog_mpu.testConnection();
-
 	float im_data[9];
 
 	while(1){
 
 		mog_mpu.getMotion9(&ax,&ay,&az,&gx,&gy,&gz,&mx,&my,&mz);
-		gettimeofday(&nowTime,NULL);
-		struct tm *pnow = localtime(&now);
-
-		data[0] = ax;
-		data[1] = ay;
-		data[2] = az;
-		data[3] = gx;
-		data[4] = gy;
-		data[5] = gz;
-		data[6] = (float)(pnow->tm_min);
-		data[7] = (float)nowTime.tv_sec;
-		data[8] = (float)nowTime.tv_usec;
-
-		std::lock_guard<std::mutex> lock(mtx);
-		//pthread_mutex_lock(&lock);
-		memcpy(wp_i,data,sizeof(float)*IBUF_SIZE);
-		wp_i+=IBUF_SIZE;//?!
-		//pthread_mutex_unlock(&lock);
-	}
-}
 
 		struct timeval nowTime;
 		gettimeofday(&nowTime,NULL);
@@ -433,21 +389,12 @@ void* mogura::imu_test(void* arg){
 	}
 	fclose(fp_imu);
 
-//	fclose(fp_imu);
-
-void *test(void *argv){
-	int count=0;
-	while(1){
-		if(count%10==0){
-			printf("dummy func\n");
-		}
-		count++;
-	}
 }
 
 
 int main(int argc, char const* argv[]){
 	mogura mogu;
+	mogu.setdir();
 
 	gettimeofday(&stTime,NULL);
 
@@ -462,11 +409,11 @@ int main(int argc, char const* argv[]){
 	pthread_create(&thr_fsr, NULL, mogu.fsr_test,NULL);
 
 	pthread_join(thr_sv,NULL);
-
 	pthread_join(thr_led,NULL);
 	pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
 
 	pthread_mutex_destroy(&mutex);
+
 
 }
