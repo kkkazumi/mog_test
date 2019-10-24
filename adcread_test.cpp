@@ -1,3 +1,4 @@
+//g++ -o tes adcread_test.cpp adcread.cpp -lbcm2835
 #include <bcm2835.h>
 #include <stdio.h>
 #include <stdlib.h>
