@@ -33,8 +33,9 @@
 #define S_UP 2300
 #define S_DOWN 1500
 
+#define LIMIT 10
+
 struct timeval stTime;
-pthread_mutex_t mutex;
 
 
 class mogura
@@ -43,7 +44,8 @@ private:
 	float ad_data[8][2000];
 	float imu_data[6][500];
 	static int hitflg[7];
-	static time_t start_time;
+	static int endflg;
+	//static time_t;// start_time;
 	static char dirname[50];
 
 public:
@@ -59,7 +61,8 @@ public:
 	
 //////////
 int mogura::hitflg[7]={0};
-time_t mogura::start_time;
+int mogura::endflg=0;
+//time_t mogura::start_time;
 char mogura::dirname[50] = {0};
 
 void mogura::setdir(){
@@ -79,7 +82,7 @@ void mogura::setdir(){
 								S_IROTH|S_IWOTH|S_IXOTH);
 	chmod(dirname,0777);
 //		printf("fsr volt%f\n",volt_val);
-	start_time = timer;
+	//start_time = timer;
 	printf("dirset\n");
 
 }
@@ -129,7 +132,6 @@ void* mogura::servo_test(void* arg){
 
 
 	while(1){
-//		pthread_mutex_lock(&mutex);
 
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
@@ -139,6 +141,9 @@ void* mogura::servo_test(void* arg){
 	//(int)nowTime.tv_usec);
 //		printf("fsr volt%f\n",volt_val);
 
+	if(endflg==1){
+		break;
+	}
 
 		std::srand(time(NULL));
 		slp=rand()%3;
@@ -161,12 +166,12 @@ void* mogura::servo_test(void* arg){
 		//sleep(1);
 		usleep((slp+1)*100000);
 		//usleep((slp+1)*500000);
-//		pthread_mutex_unlock(&mutex);
 		for(int id=0;id<7;id++){
 			hitflg[id]=0;
 		}
 		//usleep((slp+1)*30000);
 	}
+	return NULL;
 }
 //void* fsr_test(void* arg){
 void* mogura::fsr_test(void* arg){
@@ -228,6 +233,9 @@ void* mogura::fsr_test(void* arg){
 	float bef2[8]={0};
 
 	while(1){
+		if(endflg==1){
+			break;
+		}
 
 		volt_photo[0]= mog_photo.get_volt(out_ch0,ch0_data);
 		volt_photo[1]= mog_photo.get_volt(out_ch1,ch1_data);
@@ -290,6 +298,7 @@ void* mogura::fsr_test(void* arg){
 			//data[0],data[1],data[2],data[3],data[4]);
 	}
 	fclose(fp_ad);
+	return NULL;
 }
 
 void* mogura::led(void* arg){
@@ -315,6 +324,9 @@ void* mogura::led(void* arg){
  
 	int ret;
 	while(1){
+		if(endflg==1){
+			break;
+		}
 		for(int i_ad=0;i_ad<7;i_ad++){
 			if(hitflg[i_ad]==1){
 				servo.setServoPulse(i_ad+8,4096);
@@ -328,18 +340,21 @@ void* mogura::led(void* arg){
 			}
 		}
 	}
+	return NULL;
 }
 
 //void* imu_test(void* arg){
 void* mogura::imu_test(void* arg){
 
-	time_t timer;
+	time_t timer,start_time;
 	struct tm *t_st = localtime(&timer);
 	char filename[100];
 
 	struct timeval nowTime;
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
+	time(&start_time);
+
 	t_st = localtime(&timer);
 	sprintf(filename,"%s/imu_data_%d%d%d-%d%d%d.csv",dirname,
 	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
@@ -366,6 +381,12 @@ void* mogura::imu_test(void* arg){
 		gettimeofday(&nowTime,NULL);
 		time(&timer);
 		t_st = localtime(&timer);
+		double t = difftime(timer,start_time);
+		printf("%f\n",t);
+		if(t>LIMIT){
+			endflg=1;
+			break;
+		}
 //		printf("fsr volt%f\n",volt_val);
 
 		im_data[0] = ax;
@@ -388,6 +409,7 @@ void* mogura::imu_test(void* arg){
 			//ax,ay,az,gx,gy,gz,mx,my,mz);
 	}
 	fclose(fp_imu);
+	return NULL;
 
 }
 
@@ -413,7 +435,6 @@ int main(int argc, char const* argv[]){
 	pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
 
-	pthread_mutex_destroy(&mutex);
 
 
 }
