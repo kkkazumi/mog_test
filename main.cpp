@@ -75,7 +75,7 @@ void mogura::setdir(){
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
 	t_st = localtime(&timer);
-	sprintf(dirname,"/mnt/mogura/%d%d%d-%d%d%d/",
+	sprintf(dirname,"/mnt/mogura/new_exp/%d%d%d-%d%d%d/",
 	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
 	mkdir(dirname,S_IRUSR|S_IWUSR|S_IXUSR|
 								S_IRGRP|S_IWGRP|S_IXGRP|
@@ -382,7 +382,6 @@ void* mogura::imu_test(void* arg){
 		time(&timer);
 		t_st = localtime(&timer);
 		double t = difftime(timer,start_time);
-		printf("%f\n",t);
 		if(t>LIMIT){
 			endflg=1;
 			break;
