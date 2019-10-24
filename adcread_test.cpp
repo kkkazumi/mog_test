@@ -11,12 +11,8 @@
 
 int main(int arc, char **argv) 
 {
-  char out_ch0[] = { 0b00000110, 0b00000000, 0b00000000 };
-  char ch0_data[] = { 0x00, 0x00, 0x00 };
-  char out_ch1[] = { 0b00000110, 0b01000000, 0b00000000 };
-  char ch1_data[] = { 0x00, 0x00, 0x00 };
-  char out_ch2[] = { 0b00000110, 0b10000000, 0b00000000 };
-  char ch2_data[] = { 0x00, 0x00, 0x00 }; 
+	char out_ch7[] = { 0b00000111, 0b11000000, 0b00000000 };
+  char ch7_data[] = { 0x00, 0x00, 0x00 };
 
 	mog_adc mog_photo;
 	mog_photo.set_adc();
@@ -38,8 +34,8 @@ int main(int arc, char **argv)
 			realsec = diffsec + diffsub*1e-6;
 
 			//get ad val
-			mog_photo.read_val(out_ch0,ch0_data,3);
-			val = mog_photo.get_volt(out_ch1,ch1_data);
+	//		mog_photo.read_val(out_ch0,ch0_data,8);
+			val = mog_photo.get_volt(out_ch7,ch7_data);
 
 			std::cout << realsec << ",\t" << val << std::endl;
   }
