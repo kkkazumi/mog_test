@@ -33,7 +33,7 @@
 #define S_UP 2300
 #define S_DOWN 1500
 
-#define LIMIT 10
+#define LIMIT 120
 
 struct timeval stTime;
 
@@ -75,7 +75,7 @@ void mogura::setdir(){
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
 	t_st = localtime(&timer);
-	sprintf(dirname,"/mnt/mogura/new_exp/%d%d%d-%d%d%d/",
+	sprintf(dirname,"/mnt/mogura/new_exp/%04d%02d%02d-%02d%02d%02d/",
 	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
 	mkdir(dirname,S_IRUSR|S_IWUSR|S_IXUSR|
 								S_IRGRP|S_IWGRP|S_IXGRP|
@@ -185,7 +185,7 @@ void* mogura::fsr_test(void* arg){
 	gettimeofday(&nowTime,NULL);
 	time(&timer);
 	t_st = localtime(&timer);
-	sprintf(filename,"%s/ad_data_%d%d%d-%d%d%d.csv",dirname,
+	sprintf(filename,"%s/ad_data_%04d%02d%02d-%02d%02d%02d.csv",dirname,
 	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
 //		printf("fsr volt%f\n",volt_val);
 
@@ -279,7 +279,7 @@ void* mogura::fsr_test(void* arg){
 			gettimeofday(&nowTime,NULL);
 			time(&timer);
 			t_st = localtime(&timer);
-			sprintf(filename,"%s/ad_data_%d%d%d-%d%d%d.csv",dirname,
+			sprintf(filename,"%s/ad_data_%04d%02d%02d-%02d%02d%02d.csv",dirname,
 			1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
 
 			fp_ad = fopen(filename,"w");
@@ -356,7 +356,7 @@ void* mogura::imu_test(void* arg){
 	time(&start_time);
 
 	t_st = localtime(&timer);
-	sprintf(filename,"%s/imu_data_%d%d%d-%d%d%d.csv",dirname,
+	sprintf(filename,"%s/imu_data_%04d%02d%02d-%02d%02d%02d.csv",dirname,
 	1990+(int)t_st->tm_year,(int)t_st->tm_mon,(int)t_st->tm_mday,(int)t_st->tm_hour,(int)t_st->tm_min,(int)t_st->tm_sec);
 //		printf("fsr volt%f\n",volt_val);
 
@@ -382,6 +382,7 @@ void* mogura::imu_test(void* arg){
 		time(&timer);
 		t_st = localtime(&timer);
 		double t = difftime(timer,start_time);
+		printf("%f\n",t);
 		if(t>LIMIT){
 			endflg=1;
 			break;
