@@ -1,1 +1,1 @@
-sudo ./main
+sudo ./pre_main
