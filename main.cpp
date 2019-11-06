@@ -115,6 +115,10 @@ void* mogura::servo_test(void* arg){
 		exit(1);
 	}
 
+	char cmd[256];
+	sprintf(cmd,"aplay /mnt/mogura/bgm/bgm_count.wav &> /dev/null &");
+	system(cmd);
+
 	Ada_ServoDriver servo(i2c);
 	servo.reset();
 	servo.setPWMFreq(SERVO_CONTROL_FREQUENCY);
@@ -129,7 +133,6 @@ void* mogura::servo_test(void* arg){
 
 		int t;
 		int test_t;
-
 
 	while(1){
 
@@ -333,7 +336,6 @@ void* mogura::led(void* arg){
 				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_on.py");
 				//usleep(50000);
 				change_flg(i_ad);
-				ret = system("aplay strike1.wav");
 				servo.setServoPulse(i_ad+8,0);
 				//usleep(50000);
 				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_off.py");
@@ -382,7 +384,7 @@ void* mogura::imu_test(void* arg){
 		time(&timer);
 		t_st = localtime(&timer);
 		double t = difftime(timer,start_time);
-		printf("%f\n",t);
+		//printf("%f\n",t);
 		if(t>LIMIT){
 			endflg=1;
 			break;
@@ -415,11 +417,13 @@ void* mogura::imu_test(void* arg){
 
 
 int main(int argc, char const* argv[]){
+	int ret;
 	mogura mogu;
 	mogu.setdir();
 
 	gettimeofday(&stTime,NULL);
 
+	system("aplay /mnt/mogura/bgm/bgm_start.wav");
 	pthread_t thr_sv;
 	pthread_t thr_led;
 	pthread_t thr_imu;
@@ -435,6 +439,7 @@ int main(int argc, char const* argv[]){
 	pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
 
+	system("aplay /mnt/mogura/bgm/bgm_win.wav");
 
 
 }
