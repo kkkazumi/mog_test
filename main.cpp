@@ -385,6 +385,7 @@ void* mogura::imu_test(void* arg){
 		t_st = localtime(&timer);
 		double t = difftime(timer,start_time);
 		//printf("%f\n",t);
+
 		if(t>LIMIT){
 			endflg=1;
 			break;
