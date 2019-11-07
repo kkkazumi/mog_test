@@ -33,7 +33,7 @@
 #define S_UP 2300
 #define S_DOWN 1500
 
-#define LIMIT 5
+#define LIMIT 10
 
 struct timeval stTime;
 
@@ -356,7 +356,7 @@ void* mogura::imu_test(void* arg){
 		time(&timer);
 		t_st = localtime(&timer);
 		double t = difftime(timer,start_time);
-		//printf("%f\n",t);
+		printf("%f\n",t);
 		if(t>LIMIT){
 			endflg=1;
 			break;
