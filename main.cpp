@@ -116,7 +116,8 @@ void* mogura::servo_test(void* arg){
 	}
 
 	char cmd[256];
-	sprintf(cmd,"aplay /mnt/mogura/bgm/bgm_count.wav &> /dev/null &");
+	//sprintf(cmd,"aplay /mnt/mogura/bgm/bgm_count.wav &> /dev/null &");
+	sprintf(cmd,"aplay ./bgm/bgm_count.wav &> /dev/null &");
 	system(cmd);
 
 	Ada_ServoDriver servo(i2c);
@@ -145,6 +146,7 @@ void* mogura::servo_test(void* arg){
 //		printf("fsr volt%f\n",volt_val);
 
 	if(endflg==1){
+		//system("aplay ./bgm/bgm_win.wav &> /dev/null &");
 		break;
 	}
 
@@ -161,6 +163,7 @@ void* mogura::servo_test(void* arg){
 				servo.setServoPulse(servo_id,S_UP);
 			}else{
 				hitflg[servo_id]=2;
+				servo.setServoPulse(servo_id+8,4096);
 				servo.setServoPulse(servo_id,S_DOWN);
 				//sleep(1);
 			}
@@ -171,6 +174,7 @@ void* mogura::servo_test(void* arg){
 		//usleep((slp+1)*500000);
 		for(int id=0;id<7;id++){
 			hitflg[id]=0;
+			servo.setServoPulse(id+8,0);
 		}
 		//usleep((slp+1)*30000);
 	}
@@ -204,6 +208,7 @@ void* mogura::fsr_test(void* arg){
 	char out_ch5[] = { 0b00000111, 0b01000000, 0b00000000 };
 	char out_ch6[] = { 0b00000111, 0b10000000, 0b00000000 };
 	char out_ch7[] = { 0b00000111, 0b11000000, 0b00000000 };
+
 	char ch0_data[] = { 0x00, 0x00, 0x00 };
 	char ch1_data[] = { 0x00, 0x00, 0x00 };
 	char ch2_data[] = { 0x00, 0x00, 0x00 };
@@ -332,11 +337,11 @@ void* mogura::led(void* arg){
 		}
 		for(int i_ad=0;i_ad<7;i_ad++){
 			if(hitflg[i_ad]==1){
-				servo.setServoPulse(i_ad+8,4096);
+				//servo.setServoPulse(i_ad+8,4096);
 				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_on.py");
 				//usleep(50000);
 				change_flg(i_ad);
-				servo.setServoPulse(i_ad+8,0);
+				//servo.setServoPulse(i_ad+8,0);
 				//usleep(50000);
 				//ret = system("python /home/pi/prog/Adafruit_Python_PCA9685/examples/led_off.py");
 			}
@@ -424,7 +429,8 @@ int main(int argc, char const* argv[]){
 
 	gettimeofday(&stTime,NULL);
 
-	system("aplay /mnt/mogura/bgm/bgm_start.wav");
+	system("aplay ./bgm/bgm_start.wav");
+	//system("aplay /mnt/mogura/bgm/bgm_start.wav");
 	pthread_t thr_sv;
 	pthread_t thr_led;
 	pthread_t thr_imu;
@@ -440,7 +446,8 @@ int main(int argc, char const* argv[]){
 	pthread_join(thr_imu,NULL);
 	pthread_join(thr_fsr,NULL);
 
-	system("aplay /mnt/mogura/bgm/bgm_win.wav");
+	//system("aplay /mnt/mogura/bgm/bgm_win.wav");
+	system("aplay ./bgm/bgm_win.wav");
 
 
 }

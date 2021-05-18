@@ -1,5 +1,5 @@
 #@Makefile
-TARGET=main
+TARGET=main_control
 
 CC=g++
 OS=$(shell uname | cut -d_ -f1)
@@ -11,7 +11,7 @@ LDFLAGS = -L$(PATH_LIB) -L. -lbcm2835 -lwiringPi -lpthread
 CFLAGS = -I$(PATH_INC) -I.
 
 PROGRAM=$(addsuffix .cpp, $(TARGET))
-OBJS = adcread.o servo_c.o mpu9250.o
+OBJS = adcread.o servo_c.o mpu9250.o neuralnet.o
 
 #$(TARGET): $(PROGRAM)
 $(TARGET): $(OBJS)
